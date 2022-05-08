@@ -8,8 +8,6 @@ import org.springframework.data.domain.Page;
 
 public interface PostService extends JPAService<Post> {
 
-    void setReactionService(ReactionService reactionService);
-
     PostDto publishPost(NewPostDto newPost, String username);
 
     void deletePost(String username, Long postId);

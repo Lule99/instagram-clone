@@ -1,0 +1,6 @@
+package com.instaclone.instaclone.model.enums;
+
+public enum Category {
+    NATURE, SPORT, TRAVEL, TECHNOLOGY, FASHION, FOOD_DRINK, ANIMALS, CLUBBING, URBAN_LIFE, ART, SELFIE,
+    RELIGION_HISTORY, EDUCATION, HEALTH_BEAUTY, MEME, OTHER
+}

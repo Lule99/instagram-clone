@@ -19,7 +19,9 @@ import com.instaclone.instaclone.model.User;
 import com.instaclone.instaclone.repository.PasswordTokenRepository;
 import com.instaclone.instaclone.repository.ProfileRepository;
 import com.instaclone.instaclone.repository.UserRepository;
+import com.instaclone.instaclone.service.CategorizationService;
 import com.instaclone.instaclone.service.ImageService;
+import com.instaclone.instaclone.service.LocationService;
 import com.instaclone.instaclone.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -48,6 +50,8 @@ public class UserServiceImpl extends JPAServiceImpl<User> implements UserService
     private final UserToUserSearchResultDto userToUserSearchResultDto;
     private final UserToProfileInfoDtoConverter userToProfileInfoDtoConverter
             = new UserToProfileInfoDtoConverter();
+    private final LocationService locationService;
+    private final CategorizationService categorizationService;
 
     private static final String FRONT_APP_URL = "http://localhost:3000";
 
@@ -76,6 +80,9 @@ public class UserServiceImpl extends JPAServiceImpl<User> implements UserService
 
         User user = registrationDtoToUser.convert(registrationDto);
         Profile profile = registrationDtoToProfile.convert(registrationDto);
+        locationService.save(profile.getLocation());
+        categorizationService.save(profile.getPostCategorization());
+        categorizationService.save(profile.getFollowCategorization());
 
         if (userRepository.findByUsername(registrationDto.getUsername()) != null)
             throw new BadCredentialsException("Username vec postoji!");

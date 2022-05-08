@@ -16,7 +16,7 @@ import java.time.LocalDate;
 public class PasswordToken extends BaseEntity {
     private String token;
 
-    @OneToOne(targetEntity = User.class, fetch = FetchType.EAGER)
+    @OneToOne(targetEntity = User.class)
     private User user;
 
     private LocalDate expiryDate;

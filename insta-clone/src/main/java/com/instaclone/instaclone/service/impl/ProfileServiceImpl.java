@@ -35,7 +35,6 @@ public class ProfileServiceImpl extends JPAServiceImpl<Profile> implements Profi
         regularUser.setName(updateUserDto.getName());
         regularUser.setBio(updateUserDto.getBio());
         regularUser.setProfilePicture(updateUserDto.getProfilePicture());
-        regularUser.setPublicProfile(updateUserDto.getPublicProfile());
 
         save(regularUser);
 

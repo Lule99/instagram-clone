@@ -1,6 +1,5 @@
 package com.instaclone.instaclone.model;
 
-import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 import org.hibernate.annotations.Where;

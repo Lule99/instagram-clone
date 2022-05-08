@@ -32,6 +32,7 @@ public class PostToPostDto extends Converter<Post, PostDto> {
                 .dateTime(source.getTimeCreated())
                 .picture(source.getPicture())
                 .text(source.getText())
+                .location(source.getLocation().getLocationName())
                 .build();
 
         dto.setNumOfReactions(postService.getNumOfReactions(source));

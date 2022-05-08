@@ -1,8 +1,10 @@
 package com.instaclone.instaclone.dto.post;
 
+import com.instaclone.instaclone.model.enums.Category;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Getter
 @Setter
@@ -17,5 +19,6 @@ public class PostDto {
     private String picture;
     private LocalDateTime dateTime;
     private int numOfReactions;
-
+    private String location;
+    private List<Category> categories;
 }

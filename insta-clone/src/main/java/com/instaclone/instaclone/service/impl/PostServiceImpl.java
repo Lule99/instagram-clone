@@ -35,12 +35,6 @@ public class PostServiceImpl extends JPAServiceImpl<Post> implements PostService
     private final UserService userService;
     private final ImageService imageService;
     private final PostToPostDto postToPostDtoConverter;
-    private ReactionService reactionService;
-
-
-    public void setReactionService(ReactionService reactionService) {
-        this.reactionService = reactionService;
-    }
 
     @PostConstruct
     public void init() {
@@ -131,8 +125,6 @@ public class PostServiceImpl extends JPAServiceImpl<Post> implements PostService
     @Override
     @Transactional
     public int getNumOfReactions(Post post) {
-        //return reactionService.countReactionsByPost(post);
-        //return postRepository.countReactionsByPost(post.getId());
         if(post.getReactions() == null)
             return 0;
         return post.getReactions().size();

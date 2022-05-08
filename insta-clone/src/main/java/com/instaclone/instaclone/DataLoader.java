@@ -1,17 +1,21 @@
 package com.instaclone.instaclone;
 
-import com.instaclone.instaclone.model.*;
+import com.instaclone.instaclone.model.Post;
+import com.instaclone.instaclone.model.Profile;
+import com.instaclone.instaclone.model.Reaction;
+import com.instaclone.instaclone.model.User;
 import com.instaclone.instaclone.model.enums.ReactionType;
 import com.instaclone.instaclone.model.enums.Role;
-import com.instaclone.instaclone.repository.*;
+import com.instaclone.instaclone.repository.PostRepository;
+import com.instaclone.instaclone.repository.ProfileRepository;
+import com.instaclone.instaclone.repository.ReactionRepository;
+import com.instaclone.instaclone.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
@@ -19,17 +23,11 @@ import java.util.List;
 @RequiredArgsConstructor
 public class DataLoader implements CommandLineRunner {
 
-    @Autowired
-    UserRepository userRepository;
-    @Autowired
-    ProfileRepository profileRepository;
-    @Autowired
-    PostRepository postRepository;
-    @Autowired
-    CommentRepository commentRepository;
-    @Autowired
-    ReactionRepository reactionRepository;
 
+    private final UserRepository userRepository;
+    private final ProfileRepository profileRepository;
+    private final PostRepository postRepository;
+    private final ReactionRepository reactionRepository;
     private final PasswordEncoder encoder;
 
     @Override
@@ -241,30 +239,5 @@ public class DataLoader implements CommandLineRunner {
         p11.setTimeCreated(LocalDateTime.now());
 
         postRepository.saveAll(List.of(p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11));
-
-
-        Comment c1 = Comment.builder()
-                .post(p1)
-                .comments(new ArrayList<>())
-                .commentText("Hi, mom1")
-                .reactions(new ArrayList<>())
-                .profile(profile1)
-                .build();
-
-        Comment c2 = Comment.builder()
-                .post(p2)
-                .comments(new ArrayList<>())
-                .commentText("Hi, mom2")
-                .reactions(new ArrayList<>())
-                .profile(profile1)
-                .build();
-
-        c1.setTimeCreated(LocalDateTime.now());
-        c2.setTimeCreated(LocalDateTime.now());
-
-
-        commentRepository.saveAll(List.of(c1, c2));
-
-
     }
 }

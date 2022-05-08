@@ -1,5 +1,6 @@
 package com.instaclone.instaclone.model;
 
+import com.instaclone.instaclone.model.enums.Category;
 import lombok.*;
 
 import javax.persistence.*;
@@ -19,11 +20,16 @@ public class Post extends BaseEntity {
     @Column(nullable = false)
     private String text;
 
+    @OneToOne
+    private Location location;
+
     private String picture;
 
-    @OneToMany(fetch = FetchType.LAZY)
-    private List<Comment>comments;
+    private Boolean viral;
 
-    @OneToMany(fetch = FetchType.LAZY)
+    @OneToMany
     private List<Reaction> reactions;
+
+    @Lob
+    private List<Category> categories;
 }
