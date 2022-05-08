@@ -2,8 +2,8 @@ package com.instaclone.instaclone.model;
 
 import lombok.*;
 
+import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
-import javax.persistence.Lob;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -13,10 +13,10 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-public class Categorization extends BaseEntity{
+public class Categorization extends BaseEntity {
 
     private LocalDateTime lastUpdate;
 
-    @Lob
+    @ElementCollection(targetClass = Double.class)
     private List<Double> categories;
 }
