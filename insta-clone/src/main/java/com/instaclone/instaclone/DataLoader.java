@@ -1,20 +1,16 @@
 package com.instaclone.instaclone;
 
-import com.instaclone.instaclone.model.Post;
-import com.instaclone.instaclone.model.Profile;
-import com.instaclone.instaclone.model.Reaction;
-import com.instaclone.instaclone.model.User;
+import com.instaclone.instaclone.model.*;
+import com.instaclone.instaclone.model.enums.Gender;
 import com.instaclone.instaclone.model.enums.ReactionType;
 import com.instaclone.instaclone.model.enums.Role;
-import com.instaclone.instaclone.repository.PostRepository;
-import com.instaclone.instaclone.repository.ProfileRepository;
-import com.instaclone.instaclone.repository.ReactionRepository;
-import com.instaclone.instaclone.repository.UserRepository;
+import com.instaclone.instaclone.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.List;
@@ -29,9 +25,76 @@ public class DataLoader implements CommandLineRunner {
     private final PostRepository postRepository;
     private final ReactionRepository reactionRepository;
     private final PasswordEncoder encoder;
+    private final LocationRepository locationRepository;
+    private final CategorizationRepository categorizationRepository;
 
     @Override
     public void run(String... args) {
+
+        Location l1 = Location.builder()
+                .locationName("Novi Sad")
+                .state("Liman Drzava")
+                .latitude(0L)
+                .longitude(0L)
+                .build();
+
+        Location l2 = Location.builder()
+                .locationName("Novi Sad")
+                .state("Liman Drzava")
+                .latitude(0L)
+                .longitude(0L)
+                .build();
+
+        Location l3 = Location.builder()
+                .locationName("Novi Sad")
+                .state("Liman Drzava")
+                .latitude(0L)
+                .longitude(0L)
+                .build();
+        l1.setTimeCreated();
+        l2.setTimeCreated();
+        l3.setTimeCreated();
+        locationRepository.saveAll(List.of(l1, l2, l3));
+
+        //---------------
+        Categorization pc1 = Categorization.builder()
+                .lastUpdate(LocalDateTime.now())
+                .categories(List.of(1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0))
+                .build();
+        Categorization fc1 = Categorization.builder()
+                .lastUpdate(LocalDateTime.now())
+                .categories(List.of(1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0))
+                .build();
+
+        Categorization pc2 = Categorization.builder()
+                .lastUpdate(LocalDateTime.now())
+                .categories(List.of(1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0))
+                .build();
+        Categorization fc2 = Categorization.builder()
+                .lastUpdate(LocalDateTime.now())
+                .categories(List.of(1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0))
+                .build();
+
+        Categorization pc3 = Categorization.builder()
+                .lastUpdate(LocalDateTime.now())
+                .categories(List.of(1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0))
+                .build();
+        Categorization fc3 = Categorization.builder()
+                .lastUpdate(LocalDateTime.now())
+                .categories(List.of(1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0))
+                .build();
+        pc1.setTimeCreated();
+        pc2.setTimeCreated();
+        pc3.setTimeCreated();
+        fc1.setTimeCreated();
+        fc2.setTimeCreated();
+        fc3.setTimeCreated();
+
+
+        categorizationRepository.saveAll(List.of(pc1, fc1, pc2, fc2, pc3, fc3));
+
+
+        //---------------
 
 
         User u1 = User.builder()
@@ -63,35 +126,50 @@ public class DataLoader implements CommandLineRunner {
         Profile profile1 = Profile.builder()
                 .user(u1)
                 .bio("Ja sam veoma uspjesan")
-                .name("Brad Pit")
+                .name("Luka Lule")
                 .profilePicture("/static/users/1.jpg")
-                .publicProfile(true)
                 .followers(new HashSet<>())
                 .following(new HashSet<>())
+                .viral(false)
+                .birthday(LocalDate.of(1999, 9, 22))
+                .gender(Gender.MALE)
+                .location(l1)
+                .followCategorization(fc1)
+                .postCategorization(pc1)
                 .build();
 
         profile1.setTimeCreated(LocalDateTime.now());
 
         Profile profile2 = Profile.builder()
                 .user(u2)
-                .bio("Moj moto je rad, rad rad")
+                .bio("Moj moto je rad, rad rad, stv njegose kakvi su ovo opisi... :(")
                 .name("Mare Markovic")
                 .profilePicture("/static/users/2.jpg")
-                .publicProfile(true)
                 .followers(new HashSet<>())
                 .following(new HashSet<>())
+                .viral(false)
+                .birthday(LocalDate.of(1999, 2, 22))
+                .gender(Gender.MALE)
+                .location(l2)
+                .followCategorization(fc2)
+                .postCategorization(pc2)
                 .build();
         profile2.setTimeCreated(LocalDateTime.now());
 
 
         Profile profile3 = Profile.builder()
                 .user(u3)
-                .bio("Volim zivotinje")
+                .bio("Volim zivotinje, btw jako glup bio, al ajde...")
                 .name("Ljubica Ljubic")
                 .profilePicture("/static/users/3.jpg")
-                .publicProfile(false)
                 .followers(new HashSet<>())
                 .following(new HashSet<>())
+                .viral(false)
+                .birthday(LocalDate.of(1999, 9, 21))
+                .gender(Gender.FEMALE)
+                .location(l3)
+                .followCategorization(fc3)
+                .postCategorization(pc3)
                 .build();
         profile3.setTimeCreated(LocalDateTime.now());
 

@@ -57,7 +57,6 @@ public class ReactionServiceImpl extends JPAServiceImpl<Reaction> implements Rea
         return reaction.getReactionType().toString();
     }
 
-    @Override
     public int countReactionsByPost(Post post) {
         return reactionRepository.countReactionByPostId(post.getId());
     }

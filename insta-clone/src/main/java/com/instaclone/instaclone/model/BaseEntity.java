@@ -25,4 +25,8 @@ public abstract class BaseEntity implements Serializable {
     {
         active = true;
     }
+
+    public void setTimeCreated(){
+        this.setTimeCreated(LocalDateTime.now());
+    }
 }
