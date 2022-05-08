@@ -31,13 +31,18 @@ public class RegistrationDtoToProfile extends Converter<RegistrationDto, Profile
                 .latitude(source.getLocation().getLatitude())
                 .build();
 
+        location.setTimeCreated();
+
         Categorization postCategorization = Categorization.builder()
                 .lastUpdate(LocalDateTime.now())
                 .categories(List.of(0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.)).build();
 
+        postCategorization.setTimeCreated();
+
         Categorization followCategorization = Categorization.builder()
                 .lastUpdate(LocalDateTime.now())
                 .categories(List.of(0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.)).build();
+        followCategorization.setTimeCreated();
 
         profile.setLocation(location);
         profile.setPostCategorization(postCategorization);

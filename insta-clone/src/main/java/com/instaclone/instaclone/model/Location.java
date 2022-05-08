@@ -19,7 +19,7 @@ public class Location extends BaseEntity {
     @Column(nullable = false)
     private String locationName;
     @Column(nullable = false)
-    private Long longitude;
+    private Double longitude;
     @Column(nullable = false)
-    private Long latitude;
+    private Double latitude;
 }

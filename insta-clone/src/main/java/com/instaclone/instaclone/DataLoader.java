@@ -34,22 +34,22 @@ public class DataLoader implements CommandLineRunner {
         Location l1 = Location.builder()
                 .locationName("Novi Sad")
                 .state("Liman Drzava")
-                .latitude(0L)
-                .longitude(0L)
+                .latitude(0.)
+                .longitude(0.)
                 .build();
 
         Location l2 = Location.builder()
                 .locationName("Novi Sad")
                 .state("Liman Drzava")
-                .latitude(0L)
-                .longitude(0L)
+                .latitude(0.)
+                .longitude(0.)
                 .build();
 
         Location l3 = Location.builder()
                 .locationName("Novi Sad")
                 .state("Liman Drzava")
-                .latitude(0L)
-                .longitude(0L)
+                .latitude(0.)
+                .longitude(0.)
                 .build();
         l1.setTimeCreated();
         l2.setTimeCreated();
