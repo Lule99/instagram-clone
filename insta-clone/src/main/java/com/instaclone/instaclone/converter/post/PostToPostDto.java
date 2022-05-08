@@ -3,6 +3,7 @@ package com.instaclone.instaclone.converter.post;
 import com.instaclone.instaclone.converter.Converter;
 import com.instaclone.instaclone.dto.post.PostDto;
 import com.instaclone.instaclone.exception.NotFoundException;
+import com.instaclone.instaclone.model.Location;
 import com.instaclone.instaclone.model.Post;
 import com.instaclone.instaclone.model.User;
 import com.instaclone.instaclone.service.PostService;
@@ -32,8 +33,10 @@ public class PostToPostDto extends Converter<Post, PostDto> {
                 .dateTime(source.getTimeCreated())
                 .picture(source.getPicture())
                 .text(source.getText())
-                .location(source.getLocation().getLocationName())
                 .build();
+        Location location = source.getLocation();
+        if (location != null)
+            dto.setLocation(location.getLocationName());
 
         dto.setNumOfReactions(postService.getNumOfReactions(source));
 
