@@ -1,9 +1,11 @@
 package com.instaclone.instaclone.controller;
 
+import com.instaclone.instaclone.dto.post.PostDto;
 import com.instaclone.instaclone.dto.user.*;
 import com.instaclone.instaclone.service.ProfileService;
 import com.instaclone.instaclone.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -72,5 +74,12 @@ public class UserController {
     public Boolean checkIfUserFollowsUser(@RequestParam String username, @RequestParam String followedUsername) {
         return userService.checkIfUserFollowsUser(username, followedUsername);
     }
+
+    @PreAuthorize("hasAnyAuthority('REGULAR_USER')")
+    @GetMapping(value = "/suggestions", produces = MediaType.APPLICATION_JSON_VALUE)
+    public Page<ProfileInfoDto> getSuggestions(@RequestParam int page, @RequestParam int size, Authentication authentication) {
+        return profileService.getSuggestions(authentication.getName(), page, size);
+    }
+
 
 }

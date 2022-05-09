@@ -1,6 +1,8 @@
 package com.instaclone.instaclone.service.impl;
 
+import com.instaclone.instaclone.converter.user.UserToProfileInfoDtoConverter;
 import com.instaclone.instaclone.dto.user.ChangeFollowingStatusDto;
+import com.instaclone.instaclone.dto.user.ProfileInfoDto;
 import com.instaclone.instaclone.dto.user.UpdateUserDto;
 import com.instaclone.instaclone.dto.user.UserDto;
 import com.instaclone.instaclone.exception.NotFoundException;
@@ -11,6 +13,10 @@ import com.instaclone.instaclone.repository.UserRepository;
 import com.instaclone.instaclone.service.ProfileService;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -22,6 +28,7 @@ public class ProfileServiceImpl extends JPAServiceImpl<Profile> implements Profi
     private final ProfileRepository repository;
     private final UserRepository userRepository;
     private final ModelMapper modelMapper;
+    private final UserToProfileInfoDtoConverter userToProfileInfoDtoConverter = new UserToProfileInfoDtoConverter();
 
     @Transactional
     @Override
@@ -29,8 +36,7 @@ public class ProfileServiceImpl extends JPAServiceImpl<Profile> implements Profi
         User user = userRepository.findByUsername(updateUserDto.getUsername());
         Profile regularUser = user.getProfile();
 
-        if (regularUser == null)
-            throw new NotFoundException("Nije pronadjen korisnik sa tim usernameom!");
+        if (regularUser == null) throw new NotFoundException("Nije pronadjen korisnik sa tim usernameom!");
 
         regularUser.setName(updateUserDto.getName());
         regularUser.setBio(updateUserDto.getBio());
@@ -46,13 +52,11 @@ public class ProfileServiceImpl extends JPAServiceImpl<Profile> implements Profi
     public void followUnfollow(ChangeFollowingStatusDto dto) {
         User user = userRepository.findByUsername(dto.getMyUsername());
         Profile profile = user.getProfile();
-        if (profile == null)
-            throw new NotFoundException("Nije pronadjen korisnik!");
+        if (profile == null) throw new NotFoundException("Nije pronadjen korisnik!");
 
         User toChangeStatusUser = userRepository.findByUsername(dto.getOtherUsername());
         Profile toChangeStatus = toChangeStatusUser.getProfile();
-        if (toChangeStatus == null)
-            throw new NotFoundException("Nije pronadjen korisnik!");
+        if (toChangeStatus == null) throw new NotFoundException("Nije pronadjen korisnik!");
 
         if (profile.getFollowing().contains(toChangeStatus)) {
             profile.getFollowing().remove(toChangeStatus);
@@ -64,6 +68,17 @@ public class ProfileServiceImpl extends JPAServiceImpl<Profile> implements Profi
 
         save(profile);
         save(toChangeStatus);
+    }
+
+    @Override
+    public Page<ProfileInfoDto> getSuggestions(String username, int page, int size) {
+
+        //TODO logika za sugestije, sad vraca sve...
+        page = Math.max(page, 0);
+        size = Math.max(size, 1);
+        Pageable pageable = PageRequest.of(page, size, Sort.Direction.DESC, "timeCreated");
+        Page<User> pageOfProfiles = userRepository.findAll(pageable);
+        return pageOfProfiles.map(userToProfileInfoDtoConverter::convert);
     }
 
 
