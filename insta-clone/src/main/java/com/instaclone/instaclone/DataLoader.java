@@ -1,6 +1,7 @@
 package com.instaclone.instaclone;
 
 import com.instaclone.instaclone.model.*;
+import com.instaclone.instaclone.model.enums.Category;
 import com.instaclone.instaclone.model.enums.Gender;
 import com.instaclone.instaclone.model.enums.ReactionType;
 import com.instaclone.instaclone.model.enums.Role;
@@ -51,10 +52,35 @@ public class DataLoader implements CommandLineRunner {
                 .latitude(0.)
                 .longitude(0.)
                 .build();
+
+        Location postl1 = Location.builder()
+                .locationName("Kraljevica Marka 28b")
+                .state("Liman2 Drzava")
+                .latitude(0.)
+                .longitude(0.)
+                .build();
+
+        Location postl2 = Location.builder()
+                .locationName("Vitezovi Salajke")
+                .state("Srbija")
+                .latitude(0.)
+                .longitude(0.)
+                .build();
+
+        Location postl3 = Location.builder()
+                .locationName("Vjeternik")
+                .state("Republika Srpska")
+                .latitude(0.)
+                .longitude(0.)
+                .build();
         l1.setTimeCreated();
         l2.setTimeCreated();
         l3.setTimeCreated();
-        locationRepository.saveAll(List.of(l1, l2, l3));
+        postl1.setTimeCreated();
+        postl2.setTimeCreated();
+        postl3.setTimeCreated();
+        locationRepository.saveAll(List.of(l1, l2, l3, postl1, postl2, postl3));
+
 
         //---------------
         Categorization pc1 = Categorization.builder()
@@ -232,6 +258,8 @@ public class DataLoader implements CommandLineRunner {
                 .picture("/static/posts/1.jpg")
                 .text("Post 1 neki text")
                 .reactions(List.of(reakc11, reakc12))
+                .location(postl1)
+                .categories(List.of(Category.URBAN_LIFE))
                 .build();
 
         Post p2 = Post.builder()
@@ -239,6 +267,8 @@ public class DataLoader implements CommandLineRunner {
                 .picture("/static/posts/2.jpg")
                 .text("Post 2 neki text")
                 .reactions(List.of(reakc21, reakc22))
+                .location(postl2)
+                .categories(List.of(Category.ANIMALS, Category.NATURE, Category.HEALTH_BEAUTY, Category.SELFIE))
                 .build();
 
         p1.setTimeCreated(LocalDateTime.now());
@@ -249,6 +279,8 @@ public class DataLoader implements CommandLineRunner {
                 .picture("/static/posts/3.jpg")
                 .text("Post 1 neki text")
                 .reactions(List.of())
+                .location(postl3)
+                .categories(List.of(Category.ANIMALS, Category.NATURE, Category.MEME))
                 .build();
         p3.setTimeCreated(LocalDateTime.now());
 
@@ -257,6 +289,7 @@ public class DataLoader implements CommandLineRunner {
                 .picture("/static/posts/4.jpg")
                 .text("Post 1 neki text")
                 .reactions(List.of())
+                .categories(List.of(Category.ANIMALS, Category.NATURE))
                 .build();
         p4.setTimeCreated(LocalDateTime.now());
 

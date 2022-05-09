@@ -6,6 +6,7 @@ import com.instaclone.instaclone.exception.NotFoundException;
 import com.instaclone.instaclone.model.Location;
 import com.instaclone.instaclone.model.Post;
 import com.instaclone.instaclone.model.User;
+import com.instaclone.instaclone.model.enums.Category;
 import com.instaclone.instaclone.service.PostService;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,12 +34,14 @@ public class PostToPostDto extends Converter<Post, PostDto> {
                 .dateTime(source.getTimeCreated())
                 .picture(source.getPicture())
                 .text(source.getText())
+                .categories(source.getCategories())
                 .build();
         Location location = source.getLocation();
         if (location != null)
             dto.setLocation(location.getLocationName());
 
         dto.setNumOfReactions(postService.getNumOfReactions(source));
+
 
         return dto;
     }
