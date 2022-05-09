@@ -6,14 +6,12 @@ import com.instaclone.instaclone.dto.post.PostDto;
 import com.instaclone.instaclone.dto.post.UpdatePostDto;
 import com.instaclone.instaclone.exception.NotFoundException;
 import com.instaclone.instaclone.exception.OperationNotAllowedException;
+import com.instaclone.instaclone.model.Location;
 import com.instaclone.instaclone.model.Post;
 import com.instaclone.instaclone.model.Profile;
 import com.instaclone.instaclone.model.User;
 import com.instaclone.instaclone.repository.PostRepository;
-import com.instaclone.instaclone.service.ImageService;
-import com.instaclone.instaclone.service.PostService;
-import com.instaclone.instaclone.service.ReactionService;
-import com.instaclone.instaclone.service.UserService;
+import com.instaclone.instaclone.service.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -35,6 +33,7 @@ public class PostServiceImpl extends JPAServiceImpl<Post> implements PostService
     private final UserService userService;
     private final ImageService imageService;
     private final PostToPostDto postToPostDtoConverter;
+    private final LocationService locationService;
 
     @PostConstruct
     public void init() {
@@ -49,11 +48,29 @@ public class PostServiceImpl extends JPAServiceImpl<Post> implements PostService
     @Override
     public PostDto publishPost(NewPostDto dto, String username) {
         User user = userService.findByUsername(username);
+
         Post newPost = Post.builder()
                 .text(dto.getText())
                 .publisher(user.getProfile())
+                .categories(dto.getCategories())
+                .numOfShares(0)
+                .viral(false)
                 .build();
         newPost.setTimeCreated(LocalDateTime.now());
+
+        if(dto.getLocation() != null)
+        {
+            Location newLocation = new Location();
+            newLocation.setTimeCreated();
+            newLocation.setLocationName(dto.getLocation().getLocationName());
+            newLocation.setLongitude(dto.getLocation().getLongitude());
+            newLocation.setLatitude(dto.getLocation().getLatitude());
+            newLocation.setState(dto.getLocation().getState());
+            newLocation.setRegion(dto.getLocation().getRegion());
+
+            locationService.save(newLocation);
+            newPost.setLocation(newLocation);
+        }
 
         if (dto.getPicture().equals("")) {
             newPost.setPicture("/static/posts/default.jpg");
