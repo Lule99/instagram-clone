@@ -26,6 +26,12 @@ public class PostController {
         return postService.getFeed(authentication.getName(), page, size);
     }
 
+    @PreAuthorize("hasAnyAuthority('REGULAR_USER')")
+    @GetMapping(value = "/explore", produces = MediaType.APPLICATION_JSON_VALUE)
+    public Page<PostDto> getExplore(@RequestParam int page, @RequestParam int size, Authentication authentication) {
+        return postService.getExplore(authentication.getName(), page, size);
+    }
+
     @GetMapping(value = "/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     public PostDto getOnePost(@PathVariable Long id) {
         return postService.getOnePost(id);
@@ -56,6 +62,13 @@ public class PostController {
     @GetMapping(value = "/user-posts", produces = MediaType.APPLICATION_JSON_VALUE)
     public Page<PostDto> getUserPosts(@RequestParam String username, @RequestParam int page, @RequestParam int size) {
         return postService.getUserPosts(username, page, size);
+    }
+
+    @ResponseStatus(HttpStatus.CREATED)
+    @PreAuthorize("hasAnyAuthority('REGULAR_USER')")
+    @PostMapping(value = "/share/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public Boolean sharePost(@PathVariable long id, Authentication authentication) {
+        return postService.sharePost(authentication.getName(), id);
     }
 
 

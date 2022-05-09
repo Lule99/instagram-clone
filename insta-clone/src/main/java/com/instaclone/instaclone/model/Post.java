@@ -30,6 +30,8 @@ public class Post extends BaseEntity {
     @OneToMany
     private List<Reaction> reactions;
 
+    private Integer numOfShares;
+
     @ElementCollection(targetClass = Category.class)
     private List<Category> categories;
 }

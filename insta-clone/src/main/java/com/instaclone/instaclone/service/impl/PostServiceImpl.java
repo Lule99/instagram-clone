@@ -125,9 +125,37 @@ public class PostServiceImpl extends JPAServiceImpl<Post> implements PostService
     @Override
     @Transactional
     public int getNumOfReactions(Post post) {
-        if(post.getReactions() == null)
+        if (post.getReactions() == null)
             return 0;
         return post.getReactions().size();
+    }
+
+    @Override
+    public Page<PostDto> getExplore(String userName, int page, int size) {
+        /**
+         * Trenutno dobavlja sve zivo u sistemu
+         * */
+
+        page = Math.max(page, 0);
+        size = Math.max(size, 1);
+        Pageable pageable = PageRequest.of(page, size, Sort.Direction.DESC, "timeCreated");
+
+        Page<Post> posts = postRepository.findAll(pageable);
+        return posts.map(postToPostDtoConverter::convert);
+    }
+
+    @Override
+    public Boolean sharePost(String username, long id) {
+        // logika obradjuje sta user sharuje?
+        // logika za sharovan post?
+        // ...
+        Post p = postRepository.findById(id).orElseThrow(() -> new NotFoundException("Post not found"));
+        if (p.getNumOfShares() == null)
+            p.setNumOfShares(1);
+        else p.setNumOfShares(p.getNumOfShares() + 1);
+
+        postRepository.save(p);
+        return true;
     }
 
     private boolean checkIfMyPost(String username, Post post) {

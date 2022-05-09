@@ -35,10 +35,15 @@ public class PostToPostDto extends Converter<Post, PostDto> {
                 .picture(source.getPicture())
                 .text(source.getText())
                 .categories(source.getCategories())
+                .time(source.getTimeCreated())
                 .build();
         Location location = source.getLocation();
         if (location != null)
             dto.setLocation(location.getLocationName());
+
+        if (source.getNumOfShares() == null)
+            dto.setNumOfShares(0);
+        else dto.setNumOfShares(source.getNumOfShares());
 
         dto.setNumOfReactions(postService.getNumOfReactions(source));
 

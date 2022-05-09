@@ -22,4 +22,7 @@ public interface PostService extends JPAService<Post> {
 
     int getNumOfReactions(Post post);
 
+    Page<PostDto> getExplore(String username, int page, int size);
+
+    Boolean sharePost(String username, long id);
 }

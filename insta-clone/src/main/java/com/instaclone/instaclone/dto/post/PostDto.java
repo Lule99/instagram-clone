@@ -21,4 +21,6 @@ public class PostDto {
     private int numOfReactions;
     private String location;
     private List<Category> categories;
+    private LocalDateTime time;
+    private int numOfShares;
 }
