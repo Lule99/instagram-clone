@@ -1,5 +1,6 @@
 package com.instaclone.instaclone.model;
 
+import com.instaclone.instaclone.model.enums.AgeCategory;
 import com.instaclone.instaclone.model.enums.Gender;
 import lombok.*;
 
@@ -20,6 +21,9 @@ public class Profile extends BaseEntity{
     private User user;
 
     private LocalDate birthday;
+
+    @Enumerated(EnumType.STRING)
+    private AgeCategory ageCategory;
 
     @Enumerated(EnumType.STRING)
     private Gender gender;

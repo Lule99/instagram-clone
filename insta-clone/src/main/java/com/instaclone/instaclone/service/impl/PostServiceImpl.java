@@ -11,6 +11,7 @@ import com.instaclone.instaclone.model.Location;
 import com.instaclone.instaclone.model.Post;
 import com.instaclone.instaclone.model.Profile;
 import com.instaclone.instaclone.model.User;
+import com.instaclone.instaclone.model.facts.PostPublished;
 import com.instaclone.instaclone.model.facts.FinalCategorization;
 import com.instaclone.instaclone.model.facts.TimeDifferenceConstantCalculation;
 import com.instaclone.instaclone.model.facts.TopCategories;
@@ -48,6 +49,7 @@ public class PostServiceImpl extends JPAServiceImpl<Post> implements PostService
     private final PostToPostDto postToPostDtoConverter;
     private final LocationService locationService;
     private final KieContainer kieContainer;
+    private final CategorizationService categorizationService;
 
 
     @PostConstruct
@@ -86,12 +88,23 @@ public class PostServiceImpl extends JPAServiceImpl<Post> implements PostService
             newPost.setLocation(newLocation);
         }
 
+        PostPublished postPublished = new PostPublished(user.getProfile(), dto.getCategories());
+
+        KieSession kieSession = kieContainer.newKieSession("testSession");
+        kieSession.getAgenda().getAgendaGroup( "post-published" ).setFocus();
+        kieSession.insert(postPublished);
+        kieSession.fireAllRules();
+        kieSession.dispose();
+
+        categorizationService.save(user.getProfile().getPostCategorization());
+
         if (dto.getPicture().equals("")) {
             newPost.setPicture("/static/posts/default.jpg");
             return postToPostDtoConverter.convert(save(newPost));
         }
-        //need to obtain id for imageService...
+
         save(newPost);
+
         newPost.setPicture(imageService.uploadImage(dto.getPicture(), newPost.getId(), "posts"));
         return postToPostDtoConverter.convert(save(newPost));
 

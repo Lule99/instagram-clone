@@ -8,10 +8,16 @@ import com.instaclone.instaclone.dto.user.UserDto;
 import com.instaclone.instaclone.exception.NotFoundException;
 import com.instaclone.instaclone.model.Profile;
 import com.instaclone.instaclone.model.User;
+import com.instaclone.instaclone.model.facts.FollowUnfollow;
+import com.instaclone.instaclone.model.facts.ProfileForCalculatingSuggestions;
 import com.instaclone.instaclone.repository.ProfileRepository;
 import com.instaclone.instaclone.repository.UserRepository;
+import com.instaclone.instaclone.service.CategorizationService;
+import com.instaclone.instaclone.service.LocationService;
 import com.instaclone.instaclone.service.ProfileService;
 import lombok.RequiredArgsConstructor;
+import org.kie.api.runtime.KieContainer;
+import org.kie.api.runtime.KieSession;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -29,6 +35,9 @@ public class ProfileServiceImpl extends JPAServiceImpl<Profile> implements Profi
     private final UserRepository userRepository;
     private final ModelMapper modelMapper;
     private final UserToProfileInfoDtoConverter userToProfileInfoDtoConverter = new UserToProfileInfoDtoConverter();
+    private final KieContainer kieContainer;
+    private final CategorizationService categorizationService;
+    private final LocationService locationService;
 
     @Transactional
     @Override
@@ -58,22 +67,38 @@ public class ProfileServiceImpl extends JPAServiceImpl<Profile> implements Profi
         Profile toChangeStatus = toChangeStatusUser.getProfile();
         if (toChangeStatus == null) throw new NotFoundException("Nije pronadjen korisnik!");
 
-        if (profile.getFollowing().contains(toChangeStatus)) {
-            profile.getFollowing().remove(toChangeStatus);
-            toChangeStatus.getFollowers().remove(profile);
-        } else {
-            profile.getFollowing().add(toChangeStatus);
-            toChangeStatus.getFollowers().add(profile);
-        }
+        FollowUnfollow followUnfollow = new FollowUnfollow(profile, toChangeStatus, null);
+
+        KieSession kieSession = kieContainer.newKieSession("testSession");
+        kieSession.getAgenda().getAgendaGroup( "follow-unfollow" ).setFocus();
+        kieSession.insert(followUnfollow);
+        kieSession.fireAllRules();
+        kieSession.dispose();
 
         save(profile);
         save(toChangeStatus);
+        categorizationService.save(profile.getFollowCategorization());
     }
 
     @Override
     public Page<ProfileInfoDto> getSuggestions(String username, int page, int size) {
 
         //TODO logika za sugestije, sad vraca sve...
+        User user = userRepository.findByUsername(username);
+        ProfileForCalculatingSuggestions profileForCalculatingSuggestions = new ProfileForCalculatingSuggestions(user.getProfile(), false);
+
+        KieSession kieSession = kieContainer.newKieSession("testSession");
+        kieSession.getAgenda().getAgendaGroup( "suggestions" ).setFocus();
+        kieSession.setGlobal("categorizationService", categorizationService);
+        kieSession.setGlobal("myLocation", user.getProfile().getLocation());
+        kieSession.setGlobal("locationService", locationService);
+        locationService.findAll().forEach(kieSession::insert);
+        this.findAll().forEach(kieSession::insert);
+        kieSession.insert(profileForCalculatingSuggestions);
+
+        kieSession.fireAllRules();
+        kieSession.dispose();
+
         page = Math.max(page, 0);
         size = Math.max(size, 1);
         Pageable pageable = PageRequest.of(page, size, Sort.Direction.DESC, "timeCreated");

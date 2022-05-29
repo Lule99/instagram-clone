@@ -1,0 +1,40 @@
+package rules;
+
+import com.instaclone.instaclone.model.Profile;
+import com.instaclone.instaclone.model.enums.AgeCategory;
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
+
+rule "Classification CHILD"
+    agenda-group "age-categories"
+    when
+        $profile: Profile(birthday.isAfter(LocalDate.now().minus(13, ChronoUnit.YEARS))) @Watch(!ageCategory)
+    then
+        modify($profile){setAgeCategory(AgeCategory.CHILD)}
+    end
+
+rule "Classification TEENAGER"
+    agenda-group "age-categories"
+    when
+         $profile: Profile(birthday.isAfter(LocalDate.now().minus(20, ChronoUnit.YEARS)),
+         birthday.isBefore(LocalDate.now().minus(12, ChronoUnit.YEARS))) @Watch(!ageCategory)
+    then
+        modify($profile){setAgeCategory(AgeCategory.TEENAGER)}
+    end
+
+rule "Classification ADULT"
+    agenda-group "age-categories"
+    when
+        $profile: Profile(birthday.isAfter(LocalDate.now().minus(35, ChronoUnit.YEARS)),
+        birthday.isBefore(LocalDate.now().minus(19, ChronoUnit.YEARS))) @Watch(!ageCategory)
+    then
+        modify($profile){setAgeCategory(AgeCategory.ADULT)}
+    end
+
+rule "Classification ELDER"
+    agenda-group "age-categories"
+    when
+        $profile: Profile(birthday.isBefore(LocalDate.now().minus(34, ChronoUnit.YEARS))) @Watch(!ageCategory)
+    then
+        modify($profile){setAgeCategory(AgeCategory.ELDER)}
+    end

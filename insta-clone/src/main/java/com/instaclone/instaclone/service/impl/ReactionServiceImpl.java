@@ -6,11 +6,14 @@ import com.instaclone.instaclone.model.Post;
 import com.instaclone.instaclone.model.Reaction;
 import com.instaclone.instaclone.model.User;
 import com.instaclone.instaclone.model.enums.ReactionKind;
+import com.instaclone.instaclone.repository.CategorizationRepository;
 import com.instaclone.instaclone.repository.ReactionRepository;
 import com.instaclone.instaclone.service.PostService;
 import com.instaclone.instaclone.service.ReactionService;
 import com.instaclone.instaclone.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.kie.api.runtime.KieContainer;
+import org.kie.api.runtime.KieSession;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 
@@ -24,6 +27,8 @@ public class ReactionServiceImpl extends JPAServiceImpl<Reaction> implements Rea
     private final ReactionRepository reactionRepository;
     private final PostService postService;
     private final UserService userService;
+    private final KieContainer kieContainer;
+    private final CategorizationRepository categorizationRepository;
 
     @Override
     protected JpaRepository<Reaction, Long> getEntityRepository() {
@@ -66,7 +71,18 @@ public class ReactionServiceImpl extends JPAServiceImpl<Reaction> implements Rea
         newReaction.setTimeCreated(LocalDateTime.now());
         save(newReaction);
         post.getReactions().add(newReaction);
+
+        KieSession kieSession = kieContainer.newKieSession("testSession");
+        kieSession.getAgenda().getAgendaGroup( "add-reactions" ).setFocus();
+        kieSession.insert(newReaction);
+        kieSession.insert(user.getProfile());
+        kieSession.insert(post);
+        kieSession.fireAllRules();
+        kieSession.dispose();
+
+        categorizationRepository.save(user.getProfile().getFollowCategorization());
         postService.save(post);
+
         return new ToggleReactionResponseDto(dto.getReactionType().toString(), false);
     }
 
