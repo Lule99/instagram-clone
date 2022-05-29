@@ -1,5 +1,6 @@
 package com.instaclone.instaclone.model;
 
+import com.instaclone.instaclone.model.enums.CategorizationType;
 import lombok.*;
 
 import javax.persistence.ElementCollection;
@@ -16,6 +17,8 @@ import java.util.List;
 public class Categorization extends BaseEntity {
 
     private LocalDateTime lastUpdate;
+
+    private CategorizationType categorizationType;
 
     @ElementCollection(targetClass = Double.class)
     private List<Double> categories;

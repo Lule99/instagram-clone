@@ -4,15 +4,25 @@ import com.instaclone.instaclone.converter.post.PostToPostDto;
 import com.instaclone.instaclone.dto.post.NewPostDto;
 import com.instaclone.instaclone.dto.post.PostDto;
 import com.instaclone.instaclone.dto.post.UpdatePostDto;
+import com.instaclone.instaclone.exception.NoCategorizationException;
 import com.instaclone.instaclone.exception.NotFoundException;
 import com.instaclone.instaclone.exception.OperationNotAllowedException;
 import com.instaclone.instaclone.model.Location;
 import com.instaclone.instaclone.model.Post;
 import com.instaclone.instaclone.model.Profile;
 import com.instaclone.instaclone.model.User;
+import com.instaclone.instaclone.model.facts.FinalCategorization;
+import com.instaclone.instaclone.model.facts.TimeDifferenceConstantCalculation;
+import com.instaclone.instaclone.model.facts.TopCategories;
+import com.instaclone.instaclone.model.facts.ViralPost;
 import com.instaclone.instaclone.repository.PostRepository;
-import com.instaclone.instaclone.service.*;
+import com.instaclone.instaclone.service.ImageService;
+import com.instaclone.instaclone.service.LocationService;
+import com.instaclone.instaclone.service.PostService;
+import com.instaclone.instaclone.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.kie.api.runtime.KieContainer;
+import org.kie.api.runtime.KieSession;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -23,7 +33,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.PostConstruct;
 import java.time.LocalDateTime;
-import java.util.Set;
+import java.time.temporal.ChronoUnit;
+import java.util.*;
+import java.util.stream.Collectors;
+
 
 @RequiredArgsConstructor
 @Service
@@ -34,6 +47,8 @@ public class PostServiceImpl extends JPAServiceImpl<Post> implements PostService
     private final ImageService imageService;
     private final PostToPostDto postToPostDtoConverter;
     private final LocationService locationService;
+    private final KieContainer kieContainer;
+
 
     @PostConstruct
     public void init() {
@@ -58,8 +73,7 @@ public class PostServiceImpl extends JPAServiceImpl<Post> implements PostService
                 .build();
         newPost.setTimeCreated(LocalDateTime.now());
 
-        if(dto.getLocation() != null)
-        {
+        if (dto.getLocation() != null) {
             Location newLocation = new Location();
             newLocation.setTimeCreated();
             newLocation.setLocationName(dto.getLocation().getLocationName());
@@ -153,6 +167,8 @@ public class PostServiceImpl extends JPAServiceImpl<Post> implements PostService
          * Trenutno dobavlja sve zivo u sistemu
          * */
 
+        calculateExplore(userService.findByUsername(userName).getProfile());
+
         page = Math.max(page, 0);
         size = Math.max(size, 1);
         Pageable pageable = PageRequest.of(page, size, Sort.Direction.DESC, "timeCreated");
@@ -175,8 +191,97 @@ public class PostServiceImpl extends JPAServiceImpl<Post> implements PostService
         return true;
     }
 
+    @Override
+    public List<Post> getViralPostsBefore(LocalDateTime beforeDate) {
+        return postRepository.getAllByViralAndTimeCreatedBefore(true, beforeDate);
+    }
+
+    @Override
+    public List<Post> getPostsAfter(LocalDateTime afterDate) {
+        LocalDateTime weekBefore = LocalDateTime.now().minus(7, ChronoUnit.DAYS);
+        return postRepository.getAllByTimeCreatedAfter(weekBefore);
+    }
+
     private boolean checkIfMyPost(String username, Post post) {
         User user = userService.findByUsername(username);
         return post.getPublisher().getUser().getId().equals(user.getId());
+    }
+
+    private void calculateExplore(Profile profile) {
+        FinalCategorization finalCategorization = FinalCategorization
+                .builder()
+                .initilized(false)
+                .categorization(List.of(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0))
+                .build();
+        TimeDifferenceConstantCalculation tdc = new TimeDifferenceConstantCalculation(
+                profile.getFollowCategorization().getLastUpdate(),
+                profile.getPostCategorization().getLastUpdate());
+
+        KieSession kieSession = kieContainer.newKieSession("testSession");
+        kieSession.setGlobal("finalCategorization", finalCategorization);
+        kieSession.getAgenda().getAgendaGroup("explore").setFocus();
+        kieSession.insert(profile);
+        kieSession.insert(tdc);
+        kieSession.fireAllRules();
+        kieSession.dispose();
+
+        if (finalCategorization == null || finalCategorization.getCategorization() == null)
+            throw new NoCategorizationException();
+
+        TopCategories topCategories = getTop4Categories(finalCategorization);
+
+        calculateSimilarProfiles(finalCategorization);
+        List<Post> viralPosts = includePostsByViralProfiles(topCategories);
+
+    }
+
+    private List<Post> includePostsByViralProfiles(TopCategories topCategories) {
+
+        List<Profile> viralProfiles = userService.getProfilesByViral(true);
+        List<Post> viralPosts =
+                postRepository.getTop100ByPublisherInAndTimeCreatedAfter(
+                        viralProfiles,
+                        LocalDateTime.now().minus(7, ChronoUnit.DAYS));
+        List<ViralPost> virals = viralPosts.stream().map(ViralPost::new).toList();
+
+
+        KieSession kieSession = kieContainer.newKieSession("testSession");
+        kieSession.getAgenda().getAgendaGroup("viral-posts").setFocus();
+        virals.forEach(kieSession::insert);
+        kieSession.insert(topCategories);
+        kieSession.fireAllRules();
+        kieSession.dispose();
+
+        Set<Long> viralIds = virals.stream()
+                .filter(ViralPost::isTheChosenOne)
+                .map(ViralPost::getPostId)
+                .collect(Collectors.toSet());
+
+        return viralPosts
+                .stream()
+                .filter(viralIds::contains)
+                .collect(Collectors.toList());
+    }
+
+    private void calculateSimilarProfiles(FinalCategorization finalCategorization) {
+    }
+
+    private TopCategories getTop4Categories(FinalCategorization categorization) {
+        List<Double> allCats = categorization.getCategorization();
+        HashMap<Integer, Double> indexValuePair = new HashMap<>();
+        for (int i = 0; i < allCats.size(); i++) {
+            indexValuePair.put(i, allCats.get(i));
+        }
+        var sorted = indexValuePair
+                .entrySet()
+                .stream()
+                .sorted(Map.Entry.comparingByValue()).toList();
+        return new TopCategories(
+                sorted.subList(Math.max(sorted.size() - 4, 0), sorted.size())
+                        .stream()
+                        .map(Map.Entry::getKey)
+                        .sorted(Comparator.reverseOrder())
+                        .collect(Collectors.toList()));
+
     }
 }

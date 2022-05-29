@@ -1,0 +1,160 @@
+package rules;
+dialect  "mvel"
+import com.instaclone.instaclone.model.BaseEntity
+import com.instaclone.instaclone.model.Profile
+import com.instaclone.instaclone.model.Categorization
+import com.instaclone.instaclone.model.facts.FinalCategorization
+import com.instaclone.instaclone.model.facts.TimeDifferenceConstantCalculation
+import com.instaclone.instaclone.model.enums.CategorizationType
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit
+import java.util.List;
+import java.lang.Double
+import java.util.ArrayList
+import static java.lang.Math.abs;
+
+
+
+global FinalCategorization finalCategorization
+
+
+rule "find explore"
+    agenda-group "explore"
+    no-loop true
+    when
+     $profile : Profile(active,
+                        $followCategories : followCategorization,
+                        $postCategories : postCategorization)
+    then
+     insert($followCategories)
+     insert($postCategories)
+
+end
+
+rule "calculate boosting coefs difference less than 7"
+    agenda-group "explore"
+    no-loop true
+    when
+    $tdc : TimeDifferenceConstantCalculation(dayDifference < 7, active == false)
+    then
+    //forsiraj follow odnos  n+1 * follow + 1 * post
+    modify($tdc){
+        setActive(true),
+        setBoostFollowCoef(Math.abs($tdc.getDayDifference()) + 1.0),
+        setBoostPostCoef(1.0)
+    }
+
+end
+
+rule "calculate-boosting-coefs-difference-7-to-30"
+    agenda-group "explore"
+    no-loop true
+    when
+    $tdc : TimeDifferenceConstantCalculation(dayDifference > 7, dayDifference < 30,  active == false)
+    then
+    //balansirano follow/post odnos [1-24]*follow + [7-30]*post
+    modify($tdc){
+        setActive(true),
+        setBoostFollowCoef(31 - Math.abs($tdc.getDayDifference())),
+        setBoostPostCoef(Math.abs($tdc.getDayDifference()))
+    }
+
+end
+
+rule "calculate-boosting-coefs-difference-more-than-30"
+    agenda-group "explore"
+    no-loop true
+    when
+    $tdc : TimeDifferenceConstantCalculation(dayDifference > 30, active == false)
+    then
+    //forsiraj post sa konstantnom vrednoscu odnos 1*follow + 30 post
+    modify($tdc){
+        setActive(true),
+        setBoostFollowCoef(1.0),
+        setBoostPostCoef(30.0)
+    }
+
+end
+
+rule "follow-categorization-update-recently"
+    agenda-group "explore"
+    no-loop true
+    when
+     $followCategories : Categorization(active,
+                         categorizationType == CategorizationType.FOLLOW,
+                         lastUpdate.isAfter(LocalDateTime.now().minus(7, ChronoUnit.DAYS)))
+     $tdc : TimeDifferenceConstantCalculation(active)
+    then
+    finalCategorization.setInitilized(true);
+    finalCategorization.setCategorization($followCategories.getCategories());
+    insert(finalCategorization)
+end
+
+rule "follow-categorization-update-long-ago-post-is-recent"
+    agenda-group "explore"
+    no-loop true
+    when
+     $followCategories : Categorization(active,
+                        categorizationType== CategorizationType.FOLLOW,
+                        lastUpdate.isBefore(LocalDateTime.now().minus(7, ChronoUnit.DAYS)))
+     $postCategories : Categorization(active,
+                        categorizationType== CategorizationType.POST,
+                        lastUpdate.isAfter(LocalDateTime.now().minus(7, ChronoUnit.DAYS)))
+     $tdc : TimeDifferenceConstantCalculation(active)
+
+    then
+    finalCategorization.setInitilized(true);
+    List $finalList =  $postCategories.getCategories();
+    List $followList = $followCategories.getCategories();
+    for( int i =0; i< $finalList.size(); i++) {
+        $finalList.set(i, ($tdc.getBoostPostCoef() * $finalList.get(i) + $tdc.getBoostFollowCoef() * $followList.get(i))
+        /($tdc.getBoostPostCoef())+$tdc.getBoostFollowCoef());
+    }
+    finalCategorization.setCategorization($finalList);
+    insert(finalCategorization)
+end
+
+rule "follow-categorization-update-long-ago-post-also"
+    agenda-group "explore"
+    no-loop true
+    when
+     $followCategories : Categorization(active,
+                        categorizationType== CategorizationType.FOLLOW,
+                        lastUpdate.isBefore(LocalDateTime.now().minus(7, ChronoUnit.DAYS)))
+     $postCategories : Categorization(active,
+                        categorizationType== CategorizationType.POST,
+                        lastUpdate.isBefore(LocalDateTime.now().minus(7, ChronoUnit.DAYS)))
+     $tdc : TimeDifferenceConstantCalculation(active)
+    then
+    finalCategorization.setInitilized(true);
+    List $finalList =  $postCategories.getCategories();
+    List $followList = $followCategories.getCategories();
+    for( int i =0; i< $finalList.size(); i++) {
+        $finalList.set(i, ($tdc.getBoostPostCoef() * $finalList.get(i) + 3.0* $tdc.getBoostFollowCoef() * $followList.get(i))
+        /($tdc.getBoostPostCoef())+$tdc.getBoostFollowCoef() + 3.0);
+    }
+    finalCategorization.setCategorization($finalList);
+    insert(finalCategorization)
+
+
+end
+
+rule "final-categorization"
+    agenda-group "explore"
+    no-loop true
+    when
+     $final : FinalCategorization(initilized)
+     $profile : Profile(active,
+                        //viral,
+                        $postCategories : postCategorization
+                        )
+     then
+     List $result= finalCategorization.getCategorization();
+        for( int i =0; i< $result.size(); i++) {
+            $result.set(i, (8.0 * $result.get(i) + 2.0 * $postCategories.getCategories().get(i))/10);
+        }
+        finalCategorization.setCategorization($result);
+
+
+end
+

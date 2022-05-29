@@ -1,0 +1,7 @@
+package rules;
+dialect  "mvel"
+
+rule "calculate-viral-users"
+    when
+    then
+end
