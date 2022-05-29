@@ -22,6 +22,7 @@ import static java.time.temporal.ChronoUnit.DAYS;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ViralPost {
+    private Long postId;
     private LocalDateTime datePublished;
     private int daysFromPublishing;
     private double freshnessCoef;
@@ -37,6 +38,7 @@ public class ViralPost {
     private boolean theChosenOne;
 
     public ViralPost(Post post) {
+        this.postId=post.getId();
         this.datePublished = post.getTimeCreated();
         this.daysFromPublishing = (int) DAYS.between(datePublished, LocalDateTime.now());
         this.numOfShares = post.getNumOfShares();

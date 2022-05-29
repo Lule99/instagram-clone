@@ -13,6 +13,7 @@ import com.instaclone.instaclone.model.Profile;
 import com.instaclone.instaclone.model.User;
 import com.instaclone.instaclone.model.facts.FinalCategorization;
 import com.instaclone.instaclone.model.facts.TimeDifferenceConstantCalculation;
+import com.instaclone.instaclone.model.facts.TopCategories;
 import com.instaclone.instaclone.model.facts.ViralPost;
 import com.instaclone.instaclone.repository.PostRepository;
 import com.instaclone.instaclone.service.ImageService;
@@ -192,7 +193,7 @@ public class PostServiceImpl extends JPAServiceImpl<Post> implements PostService
 
     @Override
     public List<Post> getViralPostsBefore(LocalDateTime beforeDate) {
-        return postRepository.getAllByViralAndTimeCreatedBefore(true,beforeDate);
+        return postRepository.getAllByViralAndTimeCreatedBefore(true, beforeDate);
     }
 
     @Override
@@ -227,37 +228,45 @@ public class PostServiceImpl extends JPAServiceImpl<Post> implements PostService
         if (finalCategorization == null || finalCategorization.getCategorization() == null)
             throw new NoCategorizationException();
 
-        List<Integer> top4Categories = getTop4Categories(finalCategorization);
+        TopCategories topCategories = getTop4Categories(finalCategorization);
 
         calculateSimilarProfiles(finalCategorization);
-        List<Post> viralPosts = includePostsByViralProfiles(top4Categories);
+        List<Post> viralPosts = includePostsByViralProfiles(topCategories);
 
     }
 
-    private List<Post> includePostsByViralProfiles(List<Integer> top4Categories) {
+    private List<Post> includePostsByViralProfiles(TopCategories topCategories) {
 
         List<Profile> viralProfiles = userService.getProfilesByViral(true);
         List<Post> viralPosts =
                 postRepository.getTop100ByPublisherInAndTimeCreatedAfter(
-                                viralProfiles,
-                                LocalDateTime.now().minus(7, ChronoUnit.DAYS));
+                        viralProfiles,
+                        LocalDateTime.now().minus(7, ChronoUnit.DAYS));
         List<ViralPost> virals = viralPosts.stream().map(ViralPost::new).toList();
 
 
         KieSession kieSession = kieContainer.newKieSession("testSession");
         kieSession.getAgenda().getAgendaGroup("viral-posts").setFocus();
         virals.forEach(kieSession::insert);
-        kieSession.insert(top4Categories);
+        kieSession.insert(topCategories);
         kieSession.fireAllRules();
         kieSession.dispose();
 
-        return null;
+        Set<Long> viralIds = virals.stream()
+                .filter(ViralPost::isTheChosenOne)
+                .map(ViralPost::getPostId)
+                .collect(Collectors.toSet());
+
+        return viralPosts
+                .stream()
+                .filter(viralIds::contains)
+                .collect(Collectors.toList());
     }
 
     private void calculateSimilarProfiles(FinalCategorization finalCategorization) {
     }
 
-    private List<Integer> getTop4Categories(FinalCategorization categorization) {
+    private TopCategories getTop4Categories(FinalCategorization categorization) {
         List<Double> allCats = categorization.getCategorization();
         HashMap<Integer, Double> indexValuePair = new HashMap<>();
         for (int i = 0; i < allCats.size(); i++) {
@@ -267,11 +276,12 @@ public class PostServiceImpl extends JPAServiceImpl<Post> implements PostService
                 .entrySet()
                 .stream()
                 .sorted(Map.Entry.comparingByValue()).toList();
-        return sorted.subList(Math.max(sorted.size() - 4, 0), sorted.size())
-                .stream()
-                .map(Map.Entry::getKey)
-                .sorted(Comparator.reverseOrder())
-                .collect(Collectors.toList());
+        return new TopCategories(
+                sorted.subList(Math.max(sorted.size() - 4, 0), sorted.size())
+                        .stream()
+                        .map(Map.Entry::getKey)
+                        .sorted(Comparator.reverseOrder())
+                        .collect(Collectors.toList()));
 
     }
 }
