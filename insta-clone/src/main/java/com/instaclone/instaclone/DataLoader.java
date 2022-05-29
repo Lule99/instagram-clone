@@ -1,10 +1,7 @@
 package com.instaclone.instaclone;
 
 import com.instaclone.instaclone.model.*;
-import com.instaclone.instaclone.model.enums.Category;
-import com.instaclone.instaclone.model.enums.Gender;
-import com.instaclone.instaclone.model.enums.ReactionType;
-import com.instaclone.instaclone.model.enums.Role;
+import com.instaclone.instaclone.model.enums.*;
 import com.instaclone.instaclone.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
@@ -158,6 +155,7 @@ public class DataLoader implements CommandLineRunner {
                 .following(new HashSet<>())
                 .viral(false)
                 .birthday(LocalDate.of(1999, 9, 22))
+                .ageCategory(AgeCategory.ADULT)
                 .gender(Gender.MALE)
                 .location(l1)
                 .followCategorization(fc1)
@@ -175,6 +173,7 @@ public class DataLoader implements CommandLineRunner {
                 .following(new HashSet<>())
                 .viral(false)
                 .birthday(LocalDate.of(1999, 2, 22))
+                .ageCategory(AgeCategory.ADULT)
                 .gender(Gender.MALE)
                 .location(l2)
                 .followCategorization(fc2)
@@ -192,6 +191,7 @@ public class DataLoader implements CommandLineRunner {
                 .following(new HashSet<>())
                 .viral(false)
                 .birthday(LocalDate.of(1999, 9, 21))
+                .ageCategory(AgeCategory.ADULT)
                 .gender(Gender.FEMALE)
                 .location(l3)
                 .followCategorization(fc3)

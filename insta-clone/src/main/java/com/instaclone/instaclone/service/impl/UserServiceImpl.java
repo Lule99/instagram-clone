@@ -24,6 +24,8 @@ import com.instaclone.instaclone.service.ImageService;
 import com.instaclone.instaclone.service.LocationService;
 import com.instaclone.instaclone.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.kie.api.runtime.KieContainer;
+import org.kie.api.runtime.KieSession;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -52,6 +54,7 @@ public class UserServiceImpl extends JPAServiceImpl<User> implements UserService
             = new UserToProfileInfoDtoConverter();
     private final LocationService locationService;
     private final CategorizationService categorizationService;
+    private final KieContainer kieContainer;
 
     private static final String FRONT_APP_URL = "http://localhost:3000";
 
@@ -88,6 +91,12 @@ public class UserServiceImpl extends JPAServiceImpl<User> implements UserService
             throw new BadCredentialsException("Username vec postoji!");
         if (!registrationDto.getPassword().equals(registrationDto.getRepeatedPassword()))
             throw new BadCredentialsException("Sifre se ne poklapaju!");
+
+        KieSession kieSession = kieContainer.newKieSession("testSession");
+        kieSession.getAgenda().getAgendaGroup( "age-categories" ).setFocus();
+        kieSession.insert(profile);
+        kieSession.fireAllRules();
+        kieSession.dispose();
 
         profileRepository.save(profile);
         user.setProfile(profile);

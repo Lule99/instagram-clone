@@ -35,13 +35,13 @@ public class RegistrationDtoToProfile extends Converter<RegistrationDto, Profile
 
         Categorization postCategorization = Categorization.builder()
                 .lastUpdate(LocalDateTime.now())
-                .categories(List.of(0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.)).build();
+                .categories(List.of(1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.)).build();
 
         postCategorization.setTimeCreated();
 
         Categorization followCategorization = Categorization.builder()
                 .lastUpdate(LocalDateTime.now())
-                .categories(List.of(0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.,0.)).build();
+                .categories(List.of(1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.)).build();
         followCategorization.setTimeCreated();
 
         profile.setLocation(location);

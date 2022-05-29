@@ -10,9 +10,12 @@ import com.instaclone.instaclone.model.Location;
 import com.instaclone.instaclone.model.Post;
 import com.instaclone.instaclone.model.Profile;
 import com.instaclone.instaclone.model.User;
+import com.instaclone.instaclone.model.facts.PostPublished;
 import com.instaclone.instaclone.repository.PostRepository;
 import com.instaclone.instaclone.service.*;
 import lombok.RequiredArgsConstructor;
+import org.kie.api.runtime.KieContainer;
+import org.kie.api.runtime.KieSession;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -34,6 +37,8 @@ public class PostServiceImpl extends JPAServiceImpl<Post> implements PostService
     private final ImageService imageService;
     private final PostToPostDto postToPostDtoConverter;
     private final LocationService locationService;
+    private final KieContainer kieContainer;
+    private final CategorizationService categorizationService;
 
     @PostConstruct
     public void init() {
@@ -72,12 +77,23 @@ public class PostServiceImpl extends JPAServiceImpl<Post> implements PostService
             newPost.setLocation(newLocation);
         }
 
+        PostPublished postPublished = new PostPublished(user.getProfile(), dto.getCategories());
+
+        KieSession kieSession = kieContainer.newKieSession("testSession");
+        kieSession.getAgenda().getAgendaGroup( "post-published" ).setFocus();
+        kieSession.insert(postPublished);
+        kieSession.fireAllRules();
+        kieSession.dispose();
+
+        categorizationService.save(user.getProfile().getPostCategorization());
+
         if (dto.getPicture().equals("")) {
             newPost.setPicture("/static/posts/default.jpg");
             return postToPostDtoConverter.convert(save(newPost));
         }
-        //need to obtain id for imageService...
+
         save(newPost);
+
         newPost.setPicture(imageService.uploadImage(dto.getPicture(), newPost.getId(), "posts"));
         return postToPostDtoConverter.convert(save(newPost));
 

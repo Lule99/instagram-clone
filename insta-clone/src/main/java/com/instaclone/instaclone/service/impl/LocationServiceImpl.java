@@ -17,4 +17,12 @@ public class LocationServiceImpl extends JPAServiceImpl<Location> implements Loc
     protected JpaRepository<Location, Long> getEntityRepository() {
         return locationRepository;
     }
+
+    @Override
+    public double calculateDistance(Location from, Location to) {
+        return org.apache.lucene.util.SloppyMath.haversinMeters(from.getLatitude(),
+                from.getLongitude(),
+                to.getLatitude(),
+                to.getLongitude());
+    }
 }
