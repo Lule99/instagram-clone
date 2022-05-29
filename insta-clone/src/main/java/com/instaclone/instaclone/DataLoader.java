@@ -1,10 +1,7 @@
 package com.instaclone.instaclone;
 
 import com.instaclone.instaclone.model.*;
-import com.instaclone.instaclone.model.enums.Category;
-import com.instaclone.instaclone.model.enums.Gender;
-import com.instaclone.instaclone.model.enums.ReactionType;
-import com.instaclone.instaclone.model.enums.Role;
+import com.instaclone.instaclone.model.enums.*;
 import com.instaclone.instaclone.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
@@ -85,28 +82,34 @@ public class DataLoader implements CommandLineRunner {
         //---------------
         Categorization pc1 = Categorization.builder()
                 .lastUpdate(LocalDateTime.now())
+                .categorizationType(CategorizationType.POST)
                 .categories(List.of(1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0))
                 .build();
         Categorization fc1 = Categorization.builder()
                 .lastUpdate(LocalDateTime.now())
+                .categorizationType(CategorizationType.FOLLOW)
                 .categories(List.of(1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0))
                 .build();
 
         Categorization pc2 = Categorization.builder()
                 .lastUpdate(LocalDateTime.now())
+                .categorizationType(CategorizationType.POST)
                 .categories(List.of(1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0))
                 .build();
         Categorization fc2 = Categorization.builder()
                 .lastUpdate(LocalDateTime.now())
+                .categorizationType(CategorizationType.FOLLOW)
                 .categories(List.of(1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0))
                 .build();
 
         Categorization pc3 = Categorization.builder()
                 .lastUpdate(LocalDateTime.now())
+                .categorizationType(CategorizationType.POST)
                 .categories(List.of(1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0))
                 .build();
         Categorization fc3 = Categorization.builder()
                 .lastUpdate(LocalDateTime.now())
+                .categorizationType(CategorizationType.FOLLOW)
                 .categories(List.of(1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0))
                 .build();
         pc1.setTimeCreated();
