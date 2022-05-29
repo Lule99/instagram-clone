@@ -82,28 +82,34 @@ public class DataLoader implements CommandLineRunner {
         //---------------
         Categorization pc1 = Categorization.builder()
                 .lastUpdate(LocalDateTime.now())
+                .categorizationType(CategorizationType.POST)
                 .categories(List.of(1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0))
                 .build();
         Categorization fc1 = Categorization.builder()
                 .lastUpdate(LocalDateTime.now())
+                .categorizationType(CategorizationType.FOLLOW)
                 .categories(List.of(1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0))
                 .build();
 
         Categorization pc2 = Categorization.builder()
                 .lastUpdate(LocalDateTime.now())
+                .categorizationType(CategorizationType.POST)
                 .categories(List.of(1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0))
                 .build();
         Categorization fc2 = Categorization.builder()
                 .lastUpdate(LocalDateTime.now())
+                .categorizationType(CategorizationType.FOLLOW)
                 .categories(List.of(1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0))
                 .build();
 
         Categorization pc3 = Categorization.builder()
                 .lastUpdate(LocalDateTime.now())
+                .categorizationType(CategorizationType.POST)
                 .categories(List.of(1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0))
                 .build();
         Categorization fc3 = Categorization.builder()
                 .lastUpdate(LocalDateTime.now())
+                .categorizationType(CategorizationType.FOLLOW)
                 .categories(List.of(1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0))
                 .build();
         pc1.setTimeCreated();

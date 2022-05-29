@@ -1,0 +1,9 @@
+package rules;
+dialect  "mvel"
+import com.instaclone.instaclone.model.facts.ViralPost
+import com.instaclone.instaclone.model.facts.TopCategories
+
+rule "calculate-explore-viral-posts"
+    when
+    then
+end

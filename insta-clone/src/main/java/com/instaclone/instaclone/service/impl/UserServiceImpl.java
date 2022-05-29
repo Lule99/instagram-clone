@@ -205,7 +205,13 @@ public class UserServiceImpl extends JPAServiceImpl<User> implements UserService
     }
 
     @Override
+    public List<Profile> getProfilesByViral(Boolean viral) {
+        return profileRepository.findAllByViral(viral);
+    }
+
+    @Override
     protected JpaRepository<User, Long> getEntityRepository() {
         return this.userRepository;
     }
+
 }

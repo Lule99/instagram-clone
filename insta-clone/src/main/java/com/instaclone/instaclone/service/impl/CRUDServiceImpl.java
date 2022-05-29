@@ -32,6 +32,11 @@ public abstract class CRUDServiceImpl<T extends BaseEntity> implements CRUDServi
     }
 
     @Override
+    public void saveAll(List<T> entities) {
+        getEntityRepository().saveAll(entities);
+    }
+
+    @Override
     public T update(T entity) {
         return getEntityRepository().save(entity);
     }
