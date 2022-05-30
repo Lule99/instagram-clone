@@ -7,7 +7,8 @@ import com.instaclone.instaclone.model.enums.ReactionType;
 import com.instaclone.instaclone.model.enums.Category;
 import com.instaclone.instaclone.model.Post;
 import java.util.*;
-import java.lang.Double;
+import java.lang.Double
+import java.time.LocalDateTime;
 
 rule "Add LIKE reaction"
     agenda-group "add-reactions"
@@ -32,6 +33,7 @@ rule "Add LIKE reaction"
         )
     then
         $profile.getFollowCategorization().setCategories($newCategorization);
+        $profile.getFollowCategorization().setLastUpdate(LocalDateTime.now());
     end
 
 rule "Add DISLIKE reaction"
@@ -57,6 +59,7 @@ rule "Add DISLIKE reaction"
         )
     then
         $profile.getFollowCategorization().setCategories($newCategorization);
+        $profile.getFollowCategorization().setLastUpdate(LocalDateTime.now());
     end
 
 rule "Add ANGRY reaction"
@@ -82,6 +85,7 @@ rule "Add ANGRY reaction"
         )
     then
         $profile.getFollowCategorization().setCategories($newCategorization);
+        $profile.getFollowCategorization().setLastUpdate(LocalDateTime.now());
     end
 
 rule "Add LAUGH reaction"
@@ -107,6 +111,7 @@ rule "Add LAUGH reaction"
         )
     then
         $profile.getFollowCategorization().setCategories($newCategorization);
+        $profile.getFollowCategorization().setLastUpdate(LocalDateTime.now());
     end
 
 rule "Add SAD reaction"
@@ -132,4 +137,5 @@ rule "Add SAD reaction"
         )
     then
         $profile.getFollowCategorization().setCategories($newCategorization);
+        $profile.getFollowCategorization().setLastUpdate(LocalDateTime.now());
     end

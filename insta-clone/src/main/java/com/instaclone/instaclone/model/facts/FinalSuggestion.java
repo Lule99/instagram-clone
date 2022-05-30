@@ -10,8 +10,7 @@ import lombok.Setter;
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
-public class ProfileSuggestion {
+public class FinalSuggestion {
     private Profile profile;
     private double similarity;
-    private Boolean locationCalculated;
 }

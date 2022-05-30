@@ -4,6 +4,7 @@ dialect "mvel"
 import com.instaclone.instaclone.model.facts.PostPublished;
 import com.instaclone.instaclone.model.enums.Category;
 import java.util.List;
+import java.time.LocalDateTime;
 
 rule "Post published"
     agenda-group "post-published"
@@ -24,4 +25,5 @@ rule "Post published"
         )
     then
         $myProfile.getPostCategorization().setCategories($newCategorization);
+        $myProfile.getPostCategorization().setLastUpdate(LocalDateTime.now());
     end

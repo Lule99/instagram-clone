@@ -17,10 +17,12 @@ import com.instaclone.instaclone.service.LocationService;
 import com.instaclone.instaclone.model.facts.LocationCalculated;
 import com.instaclone.instaclone.model.facts.DistanceCalculated;
 import com.instaclone.instaclone.model.facts.enums.LocationCategory;
+import com.instaclone.instaclone.model.facts.FinalSuggestion;
 
 global CategorizationService categorizationService;
 global Location myLocation;
 global LocationService locationService;
+global List finalSuggestions;
 
 rule "My favorites categories - level 0"
     agenda-group "suggestions"
@@ -48,7 +50,7 @@ rule "Similar profiles rule - level 1"
             for(Category cat: $categories) {
                 coef += ((Profile) profile).getPostCategorization().getCategories().get(cat.ordinal());
             }
-            ProfileSuggestion $profileSuggestion = new ProfileSuggestion((Profile) profile, coef);
+            ProfileSuggestion $profileSuggestion = new ProfileSuggestion((Profile) profile, coef, null);
             insert($profileSuggestion);
         }
 
@@ -72,7 +74,7 @@ rule "Location calucated - CLOSE"
     when
         $profileForCalculating: ProfileForCalculatingSuggestions(processed == true, $profile: profile)
         $distanceCalculated: DistanceCalculated(distance < 100000, $location: location)
-        $profileSuggestion: ProfileSuggestion(profile != $profile, profile.location == $location)
+        $profileSuggestion: ProfileSuggestion(profile != $profile, locationCalculated != true, profile.location == $location)
     then
         System.out.println("Postavio close");
         insert(new LocationCalculated($profileSuggestion.getProfile(), LocationCategory.CLOSE))
@@ -84,7 +86,7 @@ rule "Location calucated - MEDIUM"
     when
         $profileForCalculating: ProfileForCalculatingSuggestions(processed == true, $profile: profile)
         $distanceCalculated: DistanceCalculated(distance > 100000, distance < 400000, $location: location)
-        $profileSuggestion: ProfileSuggestion(profile != $profile, profile.location == $location)
+        $profileSuggestion: ProfileSuggestion(profile != $profile, locationCalculated != true, profile.location == $location)
     then
         System.out.println("Postavio medium");
         insert(new LocationCalculated($profileSuggestion.getProfile(), LocationCategory.MEDIUM))
@@ -96,7 +98,7 @@ rule "Location calucated - FAR"
     when
         $profileForCalculating: ProfileForCalculatingSuggestions(processed == true, $profile: profile)
         $distanceCalculated: DistanceCalculated(distance > 400000, $location: location)
-        $profileSuggestion: ProfileSuggestion(profile != $profile, profile.location == $location)
+        $profileSuggestion: ProfileSuggestion(profile != $profile, locationCalculated != true, profile.location == $location)
     then
         System.out.println("Postavio far");
         insert(new LocationCalculated($profileSuggestion.getProfile(), LocationCategory.FAR))
@@ -109,11 +111,11 @@ rule "Update coef - Close profiles"
     when
         $profileForCalculating: ProfileForCalculatingSuggestions(processed == true, $profile: profile)
         $locationCalculated: LocationCalculated(locationCategory == LocationCategory.CLOSE, $location: to.location)
-        $profileSuggestion: ProfileSuggestion(profile != $profile, profile.location == $location)
+        $profileSuggestion: ProfileSuggestion(profile != $profile, locationCalculated != true, profile.location == $location)
     then
         System.out.println("Postavljam koeficijent za CLOSE");
         double $similarity = $profileSuggestion.getSimilarity() + 5;
-        modify($profileSuggestion){setSimilarity($similarity)}
+        modify($profileSuggestion){setSimilarity($similarity), setLocationCalculated(true)}
 end
 
 rule "Update coef - Medium profiles"
@@ -122,11 +124,11 @@ rule "Update coef - Medium profiles"
     when
         $profileForCalculating: ProfileForCalculatingSuggestions(processed == true, $profile: profile)
         $locationCalculated: LocationCalculated(locationCategory == LocationCategory.MEDIUM, $location: to.location)
-        $profileSuggestion: ProfileSuggestion(profile != $profile, profile.location == $location)
+        $profileSuggestion: ProfileSuggestion(profile != $profile, locationCalculated != true, profile.location == $location)
     then
         System.out.println("Postavljam koeficijent za Medium");
         double $similarity = $profileSuggestion.getSimilarity() + 3;
-        modify($profileSuggestion){setSimilarity($similarity)}
+        modify($profileSuggestion){setSimilarity($similarity), setLocationCalculated(true)}
 end
 
 rule "Update coef - Far profiles"
@@ -135,9 +137,73 @@ rule "Update coef - Far profiles"
     when
         $profileForCalculating: ProfileForCalculatingSuggestions(processed == true, $profile: profile)
         $locationCalculated: LocationCalculated(locationCategory == LocationCategory.FAR, $location: to.location)
-        $profileSuggestion: ProfileSuggestion(profile != $profile, profile.location == $location)
+        $profileSuggestion: ProfileSuggestion(profile != $profile, locationCalculated != true, profile.location == $location)
     then
         System.out.println("Postavljam koeficijent za Far");
         double $similarity = $profileSuggestion.getSimilarity() + 1;
-        modify($profileSuggestion){setSimilarity($similarity)}
+        modify($profileSuggestion){setSimilarity($similarity), setLocationCalculated(true)}
+end
+
+rule "Calculate age similarity = 0 - level 2"
+    agenda-group "suggestions"
+    when
+        $profileForCalculating: ProfileForCalculatingSuggestions(processed == true, $profile: profile)
+        $profileSuggestion: ProfileSuggestion(profile != $profile,
+            Math.abs(profile.getAgeCategory().ordinal() - $profile.getAgeCategory().ordinal()) == 0,
+            locationCalculated == true)
+    then
+        System.out.println("Ista starosna grupa!");
+        double $similarity = $profileSuggestion.getSimilarity() + 5;
+        FinalSuggestion $fS = new FinalSuggestion($profileSuggestion.getProfile(), $similarity);
+        finalSuggestions.add($fS);
+        delete($profileSuggestion);
+
+end
+
+rule "Calculate age similarity = 1 - level 2"
+    agenda-group "suggestions"
+    when
+        $profileForCalculating: ProfileForCalculatingSuggestions(processed == true, $profile: profile)
+        $profileSuggestion: ProfileSuggestion(profile != $profile,
+            Math.abs(profile.getAgeCategory().ordinal() - $profile.getAgeCategory().ordinal()) == 1,
+            locationCalculated == true)
+    then
+        System.out.println("Starosne grupe se razlikuju za 1!");
+        double $similarity = $profileSuggestion.getSimilarity() + 3;
+        FinalSuggestion $fS = new FinalSuggestion($profileSuggestion.getProfile(), $similarity);
+        finalSuggestions.add($fS);
+        delete($profileSuggestion);
+
+end
+
+rule "Calculate age similarity = 2 - level 2"
+    agenda-group "suggestions"
+    when
+        $profileForCalculating: ProfileForCalculatingSuggestions(processed == true, $profile: profile)
+        $profileSuggestion: ProfileSuggestion(profile != $profile,
+            Math.abs(profile.getAgeCategory().ordinal() - $profile.getAgeCategory().ordinal()) == 2,
+            locationCalculated == true)
+    then
+        System.out.println("Starosne grupe se razlikuju za 2!");
+        double $similarity = $profileSuggestion.getSimilarity() + 1;
+        FinalSuggestion $fS = new FinalSuggestion($profileSuggestion.getProfile(), $similarity);
+        finalSuggestions.add($fS);
+        delete($profileSuggestion);
+
+end
+
+rule "Calculate age similarity = 3 - level 2"
+    agenda-group "suggestions"
+    when
+        $profileForCalculating: ProfileForCalculatingSuggestions(processed == true, $profile: profile)
+        $profileSuggestion: ProfileSuggestion(profile != $profile,
+            Math.abs(profile.getAgeCategory().ordinal() - $profile.getAgeCategory().ordinal()) == 3,
+            locationCalculated == true)
+    then
+        System.out.println("Starosne grupe se razlikuju za 3!");
+        double $similarity = $profileSuggestion.getSimilarity() - 1;
+        FinalSuggestion $fS = new FinalSuggestion($profileSuggestion.getProfile(), $similarity);
+        finalSuggestions.add($fS);
+        delete($profileSuggestion);
+
 end

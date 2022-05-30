@@ -12,8 +12,8 @@ public class ImageServiceImpl implements ImageService {
 
     @Override
     public String uploadImage(String picture, Long entityId, String entityType) {
-        String images = System.getProperty("user.dir")+ "\\src\\main\\resources\\static\\"+entityType+"\\";
-        String images2 = System.getProperty("user.dir")+ "\\target\\classes\\static\\"+entityType+"\\";
+        String images = System.getProperty("user.dir")+ "\\insta-clone\\src\\main\\resources\\static\\"+entityType+"\\";
+        String images2 = System.getProperty("user.dir")+ "\\insta-clone\\target\\classes\\static\\"+entityType+"\\";
         String imageDataBytes = picture.substring(picture.indexOf(",")+1);
 
         byte[] data = Base64.getDecoder().decode(imageDataBytes);
