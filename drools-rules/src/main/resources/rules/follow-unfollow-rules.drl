@@ -2,10 +2,11 @@ package rules;
 
 import com.instaclone.instaclone.model.facts.FollowUnfollow;
 import com.instaclone.instaclone.model.facts.enums.ToggleFollowType;
-import java.util.List;
+import java.util.List
+import java.time.LocalDateTime;
 
 
-rule "Set toggle type UNFOLLOW"
+rule "Set toggle type UNFOLLOW - level 0"
     agenda-group "follow-unfollow"
     salience 100
     when
@@ -14,7 +15,7 @@ rule "Set toggle type UNFOLLOW"
         modify($followUnfollow){setType(ToggleFollowType.UNFOLLOW)}
     end
 
-rule "Set toggle type FOLLOW"
+rule "Set toggle type FOLLOW - level 0"
     agenda-group "follow-unfollow"
     salience 100
     when
@@ -23,7 +24,7 @@ rule "Set toggle type FOLLOW"
         modify($followUnfollow){setType(ToggleFollowType.FOLLOW)}
     end
 
-rule "Follow rule"
+rule "Follow rule - level 1"
     agenda-group "follow-unfollow"
     salience 10
     when
@@ -45,11 +46,12 @@ rule "Follow rule"
                 )
     then
         $myProfile.getFollowCategorization().setCategories($newCategorization);
+        $myProfile.getFollowCategorization().setLastUpdate(LocalDateTime.now());
         $myProfile.getFollowing().add($otherProfile);
         $otherProfile.getFollowers().add($myProfile);
     end
 
-rule "Unfollow rule"
+rule "Unfollow rule - level 1"
     agenda-group "follow-unfollow"
     salience 10
     when
@@ -71,6 +73,7 @@ rule "Unfollow rule"
                         )
     then
         $myProfile.getFollowCategorization().setCategories($newCategorization);
+        $myProfile.getFollowCategorization().setLastUpdate(LocalDateTime.now());
         $myProfile.getFollowing().remove($otherProfile);
         $otherProfile.getFollowers().remove($myProfile);
     end

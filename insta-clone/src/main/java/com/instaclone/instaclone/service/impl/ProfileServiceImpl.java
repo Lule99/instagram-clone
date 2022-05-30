@@ -8,6 +8,7 @@ import com.instaclone.instaclone.dto.user.UserDto;
 import com.instaclone.instaclone.exception.NotFoundException;
 import com.instaclone.instaclone.model.Profile;
 import com.instaclone.instaclone.model.User;
+import com.instaclone.instaclone.model.facts.FinalSuggestion;
 import com.instaclone.instaclone.model.facts.FollowUnfollow;
 import com.instaclone.instaclone.model.facts.ProfileForCalculatingSuggestions;
 import com.instaclone.instaclone.repository.ProfileRepository;
@@ -19,13 +20,15 @@ import lombok.RequiredArgsConstructor;
 import org.kie.api.runtime.KieContainer;
 import org.kie.api.runtime.KieSession;
 import org.modelmapper.ModelMapper;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.*;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -83,7 +86,8 @@ public class ProfileServiceImpl extends JPAServiceImpl<Profile> implements Profi
     @Override
     public Page<ProfileInfoDto> getSuggestions(String username, int page, int size) {
 
-        //TODO logika za sugestije, sad vraca sve...
+        List<FinalSuggestion> finalSuggestions = new ArrayList<>();
+
         User user = userRepository.findByUsername(username);
         ProfileForCalculatingSuggestions profileForCalculatingSuggestions = new ProfileForCalculatingSuggestions(user.getProfile(), false);
 
@@ -92,6 +96,7 @@ public class ProfileServiceImpl extends JPAServiceImpl<Profile> implements Profi
         kieSession.setGlobal("categorizationService", categorizationService);
         kieSession.setGlobal("myLocation", user.getProfile().getLocation());
         kieSession.setGlobal("locationService", locationService);
+        kieSession.setGlobal("finalSuggestions", finalSuggestions);
         locationService.findAll().forEach(kieSession::insert);
         this.findAll().forEach(kieSession::insert);
         kieSession.insert(profileForCalculatingSuggestions);
@@ -99,10 +104,21 @@ public class ProfileServiceImpl extends JPAServiceImpl<Profile> implements Profi
         kieSession.fireAllRules();
         kieSession.dispose();
 
+        finalSuggestions.sort((o1, o2) -> o1.getSimilarity() > o2.getSimilarity() ? 1 : 0);
+
+        finalSuggestions.forEach(finalSuggestion -> {
+            System.out.println(finalSuggestion.getProfile().getName());
+            System.out.println(finalSuggestion.getSimilarity());
+            System.out.println("------------------------------------");
+        });
+
+        List<User> suggestions = finalSuggestions.stream().map(sugg -> sugg.getProfile().getUser()).toList();
+
+
         page = Math.max(page, 0);
         size = Math.max(size, 1);
         Pageable pageable = PageRequest.of(page, size, Sort.Direction.DESC, "timeCreated");
-        Page<User> pageOfProfiles = userRepository.findAll(pageable);
+        Page<User> pageOfProfiles = new PageImpl<>(suggestions);
         return pageOfProfiles.map(userToProfileInfoDtoConverter::convert);
     }
 
