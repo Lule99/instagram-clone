@@ -35,33 +35,37 @@ public class ViralPost {
     private double numReactionsNumFollowersRatio;
     private List<Double> reactionsByType;
     private List<Category> categories;
+    private boolean highSentiment;
     private boolean theChosenOne;
+    private double numOfFollowers;
 
     public ViralPost(Post post) {
-        this.postId=post.getId();
+        this.postId = post.getId();
         this.datePublished = post.getTimeCreated();
         this.daysFromPublishing = (int) DAYS.between(datePublished, LocalDateTime.now());
         this.numOfShares = post.getNumOfShares();
         this.numOfReactions = post.getReactions().size();
-        this.numOfInteractions = numOfShares+numOfReactions;
-        this.freshnessCoef = (double) numOfInteractions/ (double) daysFromPublishing;
-        this.numReactionsNumFollowersRatio = (double) numOfReactions / (double) post.getPublisher().getFollowers().size();
+        this.numOfInteractions = numOfShares + numOfReactions;
+        this.freshnessCoef = (double) numOfInteractions / (double) daysFromPublishing;
+        this.numOfFollowers = (double) post.getPublisher().getFollowers().size();
+        this.numReactionsNumFollowersRatio = (double) numOfReactions / this.numOfFollowers;
         this.viral = post.getViral();
         this.reactionsByType = calculateReactionsByType(post.getReactions());
         this.categories = post.getCategories();
         this.positivityCoef = calculatePositivityCoef(reactionsByType);
         this.negativityCoef = calculateNegativityCoef(reactionsByType);
-        this.theChosenOne=false;
+        this.theChosenOne = false;
+        this.highSentiment = false;
 
 
     }
 
     private double calculateNegativityCoef(List<Double> r) {
-        return (2*r.get(0)+r.get(2))/(r.get(1)+ 2 * r.get(3) + r.get(4));
+        return (2 * r.get(0) + r.get(2)) / (r.get(1) + 2 * r.get(3) + r.get(4));
     }
 
     private double calculatePositivityCoef(List<Double> r) {
-        return (r.get(1)+ 2 * r.get(3) + r.get(4))/(2*r.get(0)+r.get(2));
+        return (r.get(1) + 2 * r.get(3) + r.get(4)) / (2 * r.get(0) + r.get(2));
     }
 
 
@@ -70,7 +74,7 @@ public class ViralPost {
                 .collect(Collectors.groupingBy(Reaction::getReactionType, Collectors.counting()));
 
         List<Double> res = new ArrayList<>(5);
-        for (int i = 0; i <5 ; i++) {
+        for (int i = 0; i < 5; i++) {
             res.set(i, map.get(ReactionType.values()[i]).doubleValue());
         }
         return res;
