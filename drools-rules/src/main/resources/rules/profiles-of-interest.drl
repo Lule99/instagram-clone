@@ -1,0 +1,131 @@
+package rules;
+dialect  "mvel"
+
+import com.instaclone.instaclone.model.facts.FinalCategorization
+import com.instaclone.instaclone.model.facts.ProfileInFocus
+import com.instaclone.instaclone.model.facts.ProfileOfInterest
+import com.instaclone.instaclone.model.Profile
+import com.instaclone.instaclone.model.BaseEntity
+import java.time.LocalDateTime;
+import com.instaclone.instaclone.model.facts.TimeDifferenceConstantCalculation
+import java.util.List;
+
+rule "boost profiles that are not followed"
+    agenda-group "profilesOfInterest"
+    salience 100
+    no-loop
+    lock-on-active
+    when
+    $focus: ProfileInFocus($main:profile) and
+    $profiles: List() from collect(
+            ProfileOfInterest(
+            profile.getId() != $main.id,
+            ofInterest==false,
+            profile.getFollowers() not contains $main))       //svi koji me ne prate dobijaju bonus
+    then
+    for (Object p: $profiles) {
+        ((ProfileOfInterest)p).setSimilarity(((ProfileOfInterest)p).getSimilarity() + 0.2);
+    }
+end
+
+rule "boost profiles that are new"
+    agenda-group "profilesOfInterest"
+    salience 90
+    no-loop
+    lock-on-active
+    when
+    $focus: ProfileInFocus($main:profile) and
+    $profiles: List() from collect(                                             //svi novi dobijaju bonus
+            ProfileOfInterest(
+            profile.getId() != $main.id,
+            ofInterest==false))
+    then
+    for (Object p: $profiles) {
+        LocalDateTime timeCreated =((BaseEntity)(((ProfileOfInterest)p).profile)).getTimeCreated();
+        TimeDifferenceConstantCalculation tdc =
+         new TimeDifferenceConstantCalculation(timeCreated, LocalDateTime.now());
+
+        ((ProfileOfInterest)p).setSimilarity(((ProfileOfInterest)p).getSimilarity() + 0.3/(tdc.dayDifference+1));       //trenutni max je 0.3
+    }
+end
+
+rule "boost profiles that are strongly simmilar to my interest"
+    agenda-group "profilesOfInterest"
+    salience 80
+    no-loop
+    lock-on-active
+    when
+    $fc : FinalCategorization() and
+    $focus: ProfileInFocus($main:profile) and
+    $profiles: List() from collect(
+            ProfileOfInterest(
+            profile.getId() != $main.id,
+            ofInterest==false,
+            totalDiff < 5))
+    then
+    for (Object p: $profiles) {
+        ((ProfileOfInterest)p).setSimilarity(((ProfileOfInterest)p).getSimilarity() + 0.5);
+    }
+end
+
+rule "boost profiles that are somewhat simmilar to my interest"
+    agenda-group "profilesOfInterest"
+    salience 80
+    no-loop
+    lock-on-active
+    when
+    $fc : FinalCategorization() and
+    $focus: ProfileInFocus($main:profile) and
+    $profiles: List() from collect(
+            ProfileOfInterest(
+            profile.getId() != $main.id,
+            ofInterest==false,
+            totalDiff > 5,
+            totalDiff < 10))
+    then
+    for (Object p: $profiles) {
+        ((ProfileOfInterest)p).setSimilarity(((ProfileOfInterest)p).getSimilarity() + 0.3);
+    }
+end
+
+rule "boost profiles that are weakly simmilar to my interest"
+    agenda-group "profilesOfInterest"
+    salience 80
+    no-loop
+    lock-on-active
+    when
+    $fc : FinalCategorization() and
+    $focus: ProfileInFocus($main:profile) and
+    $profiles: List() from collect(
+        ProfileOfInterest(
+        profile.getId() != $main.id,
+        ofInterest==false,
+        totalDiff > 10,
+        totalDiff < 15))
+    then
+    for (Object p: $profiles) {
+        ((ProfileOfInterest)p).setSimilarity(((ProfileOfInterest)p).getSimilarity() + 0.1);
+    }
+end
+
+rule "filter ofInterest"
+    agenda-group "profilesOfInterest"
+    salience 50
+    no-loop
+    lock-on-active
+    when
+    $profiles: List() from collect(
+        ProfileOfInterest(
+        ofInterest==false,
+        similarity>0.45
+        ))
+    then
+    for (Object p: $profiles) {
+        ((ProfileOfInterest)p).setOfInterest(true);
+    }
+end
+
+
+//ostalo da se ukalkulise i lokacija
+
+

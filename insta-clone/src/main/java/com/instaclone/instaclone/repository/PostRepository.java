@@ -28,4 +28,6 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     List<Post> getAllByTimeCreatedAfter(LocalDateTime after);
 
     List<Post> getAllByViralAndTimeCreatedBefore(boolean viral, LocalDateTime after);
+
+    List<Post> getTop50ByPublisherInAndTimeCreatedBeforeOrderByTimeCreatedDesc(List<Profile> publishers, LocalDateTime createdAfter);
 }

@@ -11,11 +11,7 @@ import com.instaclone.instaclone.model.Location;
 import com.instaclone.instaclone.model.Post;
 import com.instaclone.instaclone.model.Profile;
 import com.instaclone.instaclone.model.User;
-import com.instaclone.instaclone.model.facts.PostPublished;
-import com.instaclone.instaclone.model.facts.FinalCategorization;
-import com.instaclone.instaclone.model.facts.TimeDifferenceConstantCalculation;
-import com.instaclone.instaclone.model.facts.TopCategories;
-import com.instaclone.instaclone.model.facts.ViralPost;
+import com.instaclone.instaclone.model.facts.*;
 import com.instaclone.instaclone.repository.PostRepository;
 import com.instaclone.instaclone.service.*;
 import lombok.RequiredArgsConstructor;
@@ -240,8 +236,12 @@ public class PostServiceImpl extends JPAServiceImpl<Post> implements PostService
 
         TopCategories topCategories = getTopNCategories(finalCategorization, 4);
 
-        calculateSimilarProfiles(finalCategorization);
+        List<Profile> profilesOfInterest = calculateProfilesOfInterest(finalCategorization, profile);
+        List<Post> similarPosts = postRepository.getTop50ByPublisherInAndTimeCreatedBeforeOrderByTimeCreatedDesc(
+                profilesOfInterest,
+                LocalDateTime.now().minus(30, ChronoUnit.DAYS));
         List<Post> viralPosts = includePostsByViralProfiles(topCategories);
+        System.out.println("end");
 
     }
 
@@ -273,7 +273,26 @@ public class PostServiceImpl extends JPAServiceImpl<Post> implements PostService
                 .collect(Collectors.toList());
     }
 
-    private void calculateSimilarProfiles(FinalCategorization finalCategorization) {
+    private List<Profile> calculateProfilesOfInterest(FinalCategorization finalCategorization, Profile profile) {
+        KieSession kieSession = kieContainer.newKieSession("testSession");
+        kieSession.getAgenda().getAgendaGroup("profilesOfInterest").setFocus();
+
+        ProfileInFocus mainProfile = ProfileInFocus.builder().profile(profile).build();
+
+        List<ProfileOfInterest>profiles = userService.getProfilesByViral(false).stream()
+                .map(p -> new ProfileOfInterest(p, finalCategorization.getCategorization()))
+                .toList();
+
+        profiles.forEach(kieSession::insert);
+        kieSession.insert(finalCategorization);
+        kieSession.insert(mainProfile);
+        kieSession.fireAllRules();
+        kieSession.dispose();
+
+        return profiles.stream()
+                .filter(ProfileOfInterest::isOfInterest)
+                .map(ProfileOfInterest::getProfile)
+                .toList();
     }
 
     private TopCategories getTopNCategories(FinalCategorization categorization, int n) {

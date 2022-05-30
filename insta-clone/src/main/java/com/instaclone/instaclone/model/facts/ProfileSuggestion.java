@@ -1,15 +1,13 @@
 package com.instaclone.instaclone.model.facts;
 
 import com.instaclone.instaclone.model.Profile;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 @Setter
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 public class ProfileSuggestion {
     private Profile profile;
     private double similarity;
