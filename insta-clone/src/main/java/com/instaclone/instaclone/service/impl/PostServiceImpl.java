@@ -17,10 +17,7 @@ import com.instaclone.instaclone.model.facts.TimeDifferenceConstantCalculation;
 import com.instaclone.instaclone.model.facts.TopCategories;
 import com.instaclone.instaclone.model.facts.ViralPost;
 import com.instaclone.instaclone.repository.PostRepository;
-import com.instaclone.instaclone.service.ImageService;
-import com.instaclone.instaclone.service.LocationService;
-import com.instaclone.instaclone.service.PostService;
-import com.instaclone.instaclone.service.UserService;
+import com.instaclone.instaclone.service.*;
 import lombok.RequiredArgsConstructor;
 import org.kie.api.runtime.KieContainer;
 import org.kie.api.runtime.KieSession;
@@ -241,7 +238,7 @@ public class PostServiceImpl extends JPAServiceImpl<Post> implements PostService
         if (finalCategorization == null || finalCategorization.getCategorization() == null)
             throw new NoCategorizationException();
 
-        TopCategories topCategories = getTop4Categories(finalCategorization);
+        TopCategories topCategories = getTopNCategories(finalCategorization, 4);
 
         calculateSimilarProfiles(finalCategorization);
         List<Post> viralPosts = includePostsByViralProfiles(topCategories);
@@ -279,7 +276,7 @@ public class PostServiceImpl extends JPAServiceImpl<Post> implements PostService
     private void calculateSimilarProfiles(FinalCategorization finalCategorization) {
     }
 
-    private TopCategories getTop4Categories(FinalCategorization categorization) {
+    private TopCategories getTopNCategories(FinalCategorization categorization, int n) {
         List<Double> allCats = categorization.getCategorization();
         HashMap<Integer, Double> indexValuePair = new HashMap<>();
         for (int i = 0; i < allCats.size(); i++) {
@@ -290,7 +287,7 @@ public class PostServiceImpl extends JPAServiceImpl<Post> implements PostService
                 .stream()
                 .sorted(Map.Entry.comparingByValue()).toList();
         return new TopCategories(
-                sorted.subList(Math.max(sorted.size() - 4, 0), sorted.size())
+                sorted.subList(Math.max(sorted.size() - n, 0), sorted.size())
                         .stream()
                         .map(Map.Entry::getKey)
                         .sorted(Comparator.reverseOrder())
