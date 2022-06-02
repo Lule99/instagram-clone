@@ -4,7 +4,9 @@ import com.instaclone.instaclone.dto.post.NewPostDto;
 import com.instaclone.instaclone.dto.post.PostDto;
 import com.instaclone.instaclone.dto.post.UpdatePostDto;
 import com.instaclone.instaclone.service.PostService;
+import org.kie.api.runtime.KieSession;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -71,5 +73,11 @@ public class PostController {
         return postService.sharePost(authentication.getName(), id);
     }
 
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    @PreAuthorize("hasAnyAuthority('REGULAR_USER')")
+    @GetMapping(value = "/reload", produces = MediaType.APPLICATION_JSON_VALUE)
+    public Boolean reload(Authentication authentication) {
+        return postService.reload(authentication.getName());
+    }
 
 }

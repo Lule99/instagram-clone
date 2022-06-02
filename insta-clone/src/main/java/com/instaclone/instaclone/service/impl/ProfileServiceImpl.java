@@ -29,6 +29,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -112,7 +113,7 @@ public class ProfileServiceImpl extends JPAServiceImpl<Profile> implements Profi
             System.out.println("------------------------------------");
         });
 
-        List<User> suggestions = finalSuggestions.stream().map(sugg -> sugg.getProfile().getUser()).toList();
+        List<User> suggestions = finalSuggestions.stream().map(sugg -> sugg.getProfile().getUser()).collect(Collectors.toList());
 
 
         page = Math.max(page, 0);

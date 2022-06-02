@@ -4,6 +4,10 @@ import com.instaclone.instaclone.converter.post.PostToPostDto;
 import com.instaclone.instaclone.dto.post.NewPostDto;
 import com.instaclone.instaclone.dto.post.PostDto;
 import com.instaclone.instaclone.dto.post.UpdatePostDto;
+import com.instaclone.instaclone.events.ChangeCompleteParametersEvent;
+import com.instaclone.instaclone.events.NoInteractionEvent;
+import com.instaclone.instaclone.events.ReloadEvent;
+import com.instaclone.instaclone.events.UpdateParametersEvent;
 import com.instaclone.instaclone.exception.NoCategorizationException;
 import com.instaclone.instaclone.exception.NotFoundException;
 import com.instaclone.instaclone.exception.OperationNotAllowedException;
@@ -17,6 +21,10 @@ import com.instaclone.instaclone.service.*;
 import lombok.RequiredArgsConstructor;
 import org.kie.api.runtime.KieContainer;
 import org.kie.api.runtime.KieSession;
+import org.kie.api.runtime.rule.QueryResults;
+import org.kie.api.runtime.rule.QueryResultsRow;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -41,8 +49,15 @@ public class PostServiceImpl extends JPAServiceImpl<Post> implements PostService
     private final ImageService imageService;
     private final PostToPostDto postToPostDtoConverter;
     private final LocationService locationService;
-    private final KieContainer kieContainer;
     private final CategorizationService categorizationService;
+    private final KieContainer kieContainer;
+//    @Autowired
+//    @Qualifier(value = "kieSession")
+//    private KieSession kieSession;
+
+//    @Autowired
+//    @Qualifier(value = "cepSession")
+//    private KieSession cepKieSession;
 
 
     @PostConstruct
@@ -82,7 +97,6 @@ public class PostServiceImpl extends JPAServiceImpl<Post> implements PostService
         }
 
         PostPublished postPublished = new PostPublished(user.getProfile(), dto.getCategories());
-
         KieSession kieSession = kieContainer.newKieSession("testSession");
         kieSession.getAgenda().getAgendaGroup( "post-published" ).setFocus();
         kieSession.insert(postPublished);
@@ -208,6 +222,35 @@ public class PostServiceImpl extends JPAServiceImpl<Post> implements PostService
         return postRepository.getAllByTimeCreatedAfter(weekBefore);
     }
 
+    @Override
+    public Boolean reload(String name) {
+        User user = userService.findByUsername(name);
+        ReloadEvent re = new ReloadEvent(user.getProfile(), false);
+
+        KieSession cepKieSession = kieContainer.newKieSession("cepSession");
+        cepKieSession.getAgenda().getAgendaGroup("cep").setFocus();
+        cepKieSession.insert(re);
+        cepKieSession.fireAllRules();
+
+        QueryResults results = cepKieSession.getQueryResults( "getUpdateParametersEvent" );
+        for ( QueryResultsRow row : results ) {
+            UpdateParametersEvent event = ( UpdateParametersEvent ) row.get( "$result" );
+            // TODO Izvuci iz eventa korisnika i promeniti mu malo kategorizaciju
+
+            event.setProcessed(true);
+        }
+
+        QueryResults results2 = cepKieSession.getQueryResults( "getChangeCompleteParametersEvent" );
+        for ( QueryResultsRow row : results2 ) {
+            ChangeCompleteParametersEvent event = ( ChangeCompleteParametersEvent ) row.get( "$result" );
+            // TODO Izvuci iz eventa korisnika i promeniti mu veoma kategorizaciju
+
+            event.setProcessed(true);
+        }
+
+        return null;
+    }
+
     private boolean checkIfMyPost(String username, Post post) {
         User user = userService.findByUsername(username);
         return post.getPublisher().getUser().getId().equals(user.getId());
@@ -252,8 +295,7 @@ public class PostServiceImpl extends JPAServiceImpl<Post> implements PostService
                 postRepository.getTop100ByPublisherInAndTimeCreatedAfter(
                         viralProfiles,
                         LocalDateTime.now().minus(7, ChronoUnit.DAYS));
-        List<ViralPost> virals = viralPosts.stream().map(ViralPost::new).toList();
-
+        List<ViralPost> virals = viralPosts.stream().map(ViralPost::new).collect(Collectors.toList());
 
         KieSession kieSession = kieContainer.newKieSession("testSession");
         kieSession.getAgenda().getAgendaGroup("viral-posts").setFocus();
@@ -281,7 +323,7 @@ public class PostServiceImpl extends JPAServiceImpl<Post> implements PostService
 
         List<ProfileOfInterest>profiles = userService.getProfilesByViral(false).stream()
                 .map(p -> new ProfileOfInterest(p, finalCategorization.getCategorization()))
-                .toList();
+                .collect(Collectors.toList());
 
         profiles.forEach(kieSession::insert);
         kieSession.insert(finalCategorization);
@@ -292,7 +334,7 @@ public class PostServiceImpl extends JPAServiceImpl<Post> implements PostService
         return profiles.stream()
                 .filter(ProfileOfInterest::isOfInterest)
                 .map(ProfileOfInterest::getProfile)
-                .toList();
+                .collect(Collectors.toList());
     }
 
     private TopCategories getTopNCategories(FinalCategorization categorization, int n) {
@@ -304,7 +346,7 @@ public class PostServiceImpl extends JPAServiceImpl<Post> implements PostService
         var sorted = indexValuePair
                 .entrySet()
                 .stream()
-                .sorted(Map.Entry.comparingByValue()).toList();
+                .sorted(Map.Entry.comparingByValue()).collect(Collectors.toList());
         return new TopCategories(
                 sorted.subList(Math.max(sorted.size() - n, 0), sorted.size())
                         .stream()
