@@ -1,0 +1,105 @@
+package cep;
+dialect  "mvel"
+
+import com.instaclone.instaclone.events.ReloadEvent;
+import com.instaclone.instaclone.events.NoInteractionEvent;
+import com.instaclone.instaclone.events.UpdateParametersEvent;
+import com.instaclone.instaclone.events.ChangeCompleteParametersEvent;
+import com.instaclone.instaclone.events.ReactionEvent;
+
+declare window numberOfReactions
+	@doc("Number of reactions on explore in last 5min")
+	ReactionEvent() over window:time(5m)
+end
+
+declare window numberOfNoInteractions
+	@doc("Number of noInteractionEvent on explore in last 15min")
+	NoInteractionEvent() over window:time(15m)
+end
+
+declare window numberOfUPEvent
+	@doc("Number of updateParameters on explore in last 1 day")
+	UpdateParametersEvent() over window:time(24h)
+end
+
+query "getUpdateParametersEvent"
+    $result: UpdateParametersEvent(processed == false)
+end
+
+query "getChangeCompleteParametersEvent"
+    $result: ChangeCompleteParametersEvent(processed == false)
+end
+
+rule "Reload rule"
+    agenda-group "cep"
+    salience 100
+    when
+        $reloadEvent: ReloadEvent(processed == false, $profile: profile) and
+        Number(intValue == 0) from accumulate (
+        			$re: ReactionEvent(profile == $profile,
+        			    profile.getFollowing() not contains fromProfile) from window numberOfReactions,
+        			count($re)
+        		)
+    then
+        System.out.println("Bez interakcije, pravim NoInteractionEvent!");
+        NoInteractionEvent $event = new NoInteractionEvent($profile, false);
+
+        modify($reloadEvent){setProcessed(true)}
+        insert($event)
+end
+
+rule "NoInteraction rule"
+    agenda-group "cep"
+    salience 90
+    when
+        $noInteraction: NoInteractionEvent(processed == false, $profile: profile) and
+        Number(intValue >= 3) from accumulate (
+                			$re: NoInteractionEvent(profile == $profile, processed == false) from window numberOfNoInteractions,
+                			count($re)
+                		)
+    then
+        System.out.println("3 puta bez interakcije, pravim UpdateParametersEvent!");
+        UpdateParametersEvent $upE = new UpdateParametersEvent($profile, false);
+        modify($noInteraction){setProcessed(true)}
+        insert($upE);
+end
+
+rule "Clean noInteractions - rule"
+    agenda-group "cep"
+    salience 100
+    when
+        UpdateParametersEvent(processed == false, $profile: profile) and
+        $noInteractions: NoInteractionEvent(profile == $profile)
+    then
+        System.out.println("Cistim noInteracionEvents");
+        delete($noInteractions);
+end
+
+rule "UpdateParameters rule"
+    agenda-group "cep"
+    salience 80
+    when
+        $updateParametersEvent: UpdateParametersEvent(processed == true, $profile: profile)
+        Number(intValue >= 2) from accumulate (
+                			$re: UpdateParametersEvent(profile == $profile, processed == true) from window numberOfUPEvent,
+                			count($re)
+                		)
+    then
+        System.out.println("2 puta update parameters eventa u toku 1 dana!");
+        ChangeCompleteParametersEvent $upE = new ChangeCompleteParametersEvent($profile, false);
+        delete($updateParametersEvent);
+        insert($upE);
+end
+
+rule "Clean updateParameters - rule"
+    agenda-group "cep"
+    salience 90
+    when
+        ChangeCompleteParametersEvent(processed == false, $profile: profile) and
+        $updateParametersEvent: UpdateParametersEvent(processed == true, profile == $profile)
+    then
+        System.out.println("Cistim updateParametersEvents");
+        delete($updateParametersEvent);
+end
+
+
