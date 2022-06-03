@@ -6,6 +6,7 @@ import com.instaclone.instaclone.events.NoInteractionEvent;
 import com.instaclone.instaclone.events.UpdateParametersEvent;
 import com.instaclone.instaclone.events.ChangeCompleteParametersEvent;
 import com.instaclone.instaclone.events.ReactionEvent;
+import java.util.List;
 
 declare window numberOfReactions
 	@doc("Number of reactions on explore in last 5min")
@@ -31,7 +32,6 @@ query "getChangeCompleteParametersEvent"
 end
 
 rule "Reload rule"
-    agenda-group "cep"
     salience 100
     when
         $reloadEvent: ReloadEvent(processed == false, $profile: profile) and
@@ -49,12 +49,11 @@ rule "Reload rule"
 end
 
 rule "NoInteraction rule"
-    agenda-group "cep"
-    salience 90
+    salience 100
     when
-        $noInteraction: NoInteractionEvent(processed == false, $profile: profile) and
-        Number(intValue >= 3) from accumulate (
-                			$re: NoInteractionEvent(profile == $profile, processed == false) from window numberOfNoInteractions,
+        $noInteraction: NoInteractionEvent(processed == false, $profile: profile)
+        $n: Number(intValue >= 3) from accumulate (
+                			$re: NoInteractionEvent(profile.getId() == $profile.getId(), processed == false) from window numberOfNoInteractions,
                 			count($re)
                 		)
     then
@@ -65,7 +64,6 @@ rule "NoInteraction rule"
 end
 
 rule "Clean noInteractions - rule"
-    agenda-group "cep"
     salience 100
     when
         UpdateParametersEvent(processed == false, $profile: profile) and
@@ -76,12 +74,11 @@ rule "Clean noInteractions - rule"
 end
 
 rule "UpdateParameters rule"
-    agenda-group "cep"
     salience 80
     when
         $updateParametersEvent: UpdateParametersEvent(processed == true, $profile: profile)
         Number(intValue >= 2) from accumulate (
-                			$re: UpdateParametersEvent(profile == $profile, processed == true) from window numberOfUPEvent,
+                			$re: UpdateParametersEvent(profile.getId() == $profile.getId(), processed == true) from window numberOfUPEvent,
                 			count($re)
                 		)
     then
@@ -92,7 +89,6 @@ rule "UpdateParameters rule"
 end
 
 rule "Clean updateParameters - rule"
-    agenda-group "cep"
     salience 90
     when
         ChangeCompleteParametersEvent(processed == false, $profile: profile) and
