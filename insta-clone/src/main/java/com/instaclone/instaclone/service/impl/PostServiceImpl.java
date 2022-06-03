@@ -11,16 +11,14 @@ import com.instaclone.instaclone.events.UpdateParametersEvent;
 import com.instaclone.instaclone.exception.NoCategorizationException;
 import com.instaclone.instaclone.exception.NotFoundException;
 import com.instaclone.instaclone.exception.OperationNotAllowedException;
-import com.instaclone.instaclone.model.Location;
-import com.instaclone.instaclone.model.Post;
-import com.instaclone.instaclone.model.Profile;
-import com.instaclone.instaclone.model.User;
+import com.instaclone.instaclone.model.*;
 import com.instaclone.instaclone.model.facts.*;
 import com.instaclone.instaclone.repository.PostRepository;
 import com.instaclone.instaclone.service.*;
 import lombok.RequiredArgsConstructor;
 import org.kie.api.runtime.KieContainer;
 import org.kie.api.runtime.KieSession;
+import org.kie.api.runtime.rule.FactHandle;
 import org.kie.api.runtime.rule.QueryResults;
 import org.kie.api.runtime.rule.QueryResultsRow;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,9 +53,9 @@ public class PostServiceImpl extends JPAServiceImpl<Post> implements PostService
 //    @Qualifier(value = "kieSession")
 //    private KieSession kieSession;
 
-//    @Autowired
-//    @Qualifier(value = "cepSession")
-//    private KieSession cepKieSession;
+    @Autowired
+    @Qualifier(value = "cepSession")
+    private KieSession cepKieSession;
 
 
     @PostConstruct
@@ -226,26 +224,27 @@ public class PostServiceImpl extends JPAServiceImpl<Post> implements PostService
     public Boolean reload(String name) {
         User user = userService.findByUsername(name);
         ReloadEvent re = new ReloadEvent(user.getProfile(), false);
-
-        KieSession cepKieSession = kieContainer.newKieSession("cepSession");
-        cepKieSession.getAgenda().getAgendaGroup("cep").setFocus();
         cepKieSession.insert(re);
         cepKieSession.fireAllRules();
 
         QueryResults results = cepKieSession.getQueryResults( "getUpdateParametersEvent" );
         for ( QueryResultsRow row : results ) {
             UpdateParametersEvent event = ( UpdateParametersEvent ) row.get( "$result" );
-            // TODO Izvuci iz eventa korisnika i promeniti mu malo kategorizaciju
-
+            Categorization cats = event.getProfile().getFollowCategorization();
+            categorizationService.updateParameters(cats);
+            FactHandle factHandle = cepKieSession.getFactHandle(event);
             event.setProcessed(true);
+            cepKieSession.update(factHandle, event);
         }
 
         QueryResults results2 = cepKieSession.getQueryResults( "getChangeCompleteParametersEvent" );
         for ( QueryResultsRow row : results2 ) {
             ChangeCompleteParametersEvent event = ( ChangeCompleteParametersEvent ) row.get( "$result" );
-            // TODO Izvuci iz eventa korisnika i promeniti mu veoma kategorizaciju
-
+            Categorization cats = event.getProfile().getFollowCategorization();
+            categorizationService.changeCompleteParameters(cats);
+            FactHandle factHandle = cepKieSession.getFactHandle(event);
             event.setProcessed(true);
+            cepKieSession.update(factHandle, event);
         }
 
         return null;

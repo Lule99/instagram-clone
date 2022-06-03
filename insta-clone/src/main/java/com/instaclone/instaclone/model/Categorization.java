@@ -5,6 +5,7 @@ import lombok.*;
 
 import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -20,6 +21,6 @@ public class Categorization extends BaseEntity {
 
     private CategorizationType categorizationType;
 
-    @ElementCollection(targetClass = Double.class)
+    @ElementCollection(targetClass = Double.class, fetch = FetchType.EAGER)
     private List<Double> categories;
 }

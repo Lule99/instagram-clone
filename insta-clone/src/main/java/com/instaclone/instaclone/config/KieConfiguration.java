@@ -29,10 +29,9 @@ public class KieConfiguration {
 //        return this.kieContainer().newKieSession("testSession");
 //    }
 //
-//    @Bean(name = "cepSession")
-//    @Scope("prototype")
-//    public KieSession cepReportSessionRealtimeClock() {
-//        return this.kieContainer().newKieSession("cepSession");
-//    }
+    @Bean(name = "cepSession")
+    public KieSession cepReportSessionRealtimeClock() {
+        return this.kieContainer().newKieSession("cepSession");
+    }
 
 }
