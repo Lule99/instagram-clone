@@ -1,14 +1,20 @@
 package rules;
-dialect  "mvel"
+
+dialect "mvel"
 
 import com.instaclone.instaclone.model.facts.FinalCategorization
 import com.instaclone.instaclone.model.facts.ProfileInFocus
 import com.instaclone.instaclone.model.facts.ProfileOfInterest
+import com.instaclone.instaclone.model.facts.TopCategories
 import com.instaclone.instaclone.model.Profile
 import com.instaclone.instaclone.model.BaseEntity
 import java.time.LocalDateTime;
 import com.instaclone.instaclone.model.facts.TimeDifferenceConstantCalculation
 import java.util.List;
+import java.lang.Double
+import java.lang.Integer
+import static java.lang.Math.abs;
+
 
 rule "boost profiles that are not followed"
     agenda-group "profilesOfInterest"
@@ -17,15 +23,14 @@ rule "boost profiles that are not followed"
     lock-on-active
     when
     $focus: ProfileInFocus($main:profile) and
-    $profiles: List() from collect(
-            ProfileOfInterest(
-            profile.getId() != $main.id,
+    $poi: ProfileOfInterest(
+            $profile:profile,
+            $profile.id != $main.id,
             ofInterest==false,
-            profile.getFollowers() not contains $main))       //svi koji me ne prate dobijaju bonus
+            $profile.getFollowers() not contains $main)       //svi koji me ne prate dobijaju bonus
     then
-    for (Object p: $profiles) {
-        ((ProfileOfInterest)p).setSimilarity(((ProfileOfInterest)p).getSimilarity() + 0.2);
-    }
+    $poi.setSimilarity($poi.getSimilarity() + 0.2);
+
 end
 
 rule "boost profiles that are new"
@@ -34,19 +39,16 @@ rule "boost profiles that are new"
     no-loop
     lock-on-active
     when
-    $focus: ProfileInFocus($main:profile) and
-    $profiles: List() from collect(                                             //svi novi dobijaju bonus
-            ProfileOfInterest(
-            profile.getId() != $main.id,
-            ofInterest==false))
+    $focus: ProfileInFocus($main:profile) and                   //svi novi dobijaju bonus
+    $p: ProfileOfInterest(
+            $profile: profile,
+            $profile.id != $main.id,
+            ofInterest==false)
     then
-    for (Object p: $profiles) {
-        LocalDateTime timeCreated =((BaseEntity)(((ProfileOfInterest)p).profile)).getTimeCreated();
-        TimeDifferenceConstantCalculation tdc =
-         new TimeDifferenceConstantCalculation(timeCreated, LocalDateTime.now());
+        LocalDateTime timeCreated =((BaseEntity)$profile).getTimeCreated();
+        TimeDifferenceConstantCalculation tdc = new TimeDifferenceConstantCalculation(timeCreated, LocalDateTime.now());
+        $p.setSimilarity($p.getSimilarity() + 0.3/(tdc.getDayDifference()+1));       //trenutni max je 0.3
 
-        ((ProfileOfInterest)p).setSimilarity(((ProfileOfInterest)p).getSimilarity() + 0.3/(tdc.dayDifference+1));       //trenutni max je 0.3
-    }
 end
 
 rule "boost profiles that are strongly simmilar to my interest"
@@ -57,15 +59,14 @@ rule "boost profiles that are strongly simmilar to my interest"
     when
     $fc : FinalCategorization() and
     $focus: ProfileInFocus($main:profile) and
-    $profiles: List() from collect(
-            ProfileOfInterest(
-            profile.getId() != $main.id,
+    $p: ProfileOfInterest(
+            $profile: profile,
+            $profile.id != $main.id,
             ofInterest==false,
-            totalDiff < 5))
+            totalDiff < 5)
     then
-    for (Object p: $profiles) {
-        ((ProfileOfInterest)p).setSimilarity(((ProfileOfInterest)p).getSimilarity() + 0.5);
-    }
+    $p.setSimilarity($p.getSimilarity() + 0.5);
+
 end
 
 rule "boost profiles that are somewhat simmilar to my interest"
@@ -76,16 +77,14 @@ rule "boost profiles that are somewhat simmilar to my interest"
     when
     $fc : FinalCategorization() and
     $focus: ProfileInFocus($main:profile) and
-    $profiles: List() from collect(
-            ProfileOfInterest(
-            profile.getId() != $main.id,
+    $p: ProfileOfInterest(
+            $profile: profile,
+            $profile.id != $main.id,
             ofInterest==false,
             totalDiff > 5,
-            totalDiff < 10))
+            totalDiff < 10)
     then
-    for (Object p: $profiles) {
-        ((ProfileOfInterest)p).setSimilarity(((ProfileOfInterest)p).getSimilarity() + 0.3);
-    }
+        $p.setSimilarity($p.getSimilarity() + 0.3);
 end
 
 rule "boost profiles that are weakly simmilar to my interest"
@@ -96,17 +95,69 @@ rule "boost profiles that are weakly simmilar to my interest"
     when
     $fc : FinalCategorization() and
     $focus: ProfileInFocus($main:profile) and
-    $profiles: List() from collect(
-        ProfileOfInterest(
-        profile.getId() != $main.id,
+    $p: ProfileOfInterest(
+        $profile: profile,
+        $profile.id != $main.id,
         ofInterest==false,
         totalDiff > 10,
-        totalDiff < 15))
+        totalDiff < 15)
     then
-    for (Object p: $profiles) {
-        ((ProfileOfInterest)p).setSimilarity(((ProfileOfInterest)p).getSimilarity() + 0.1);
-    }
+        $p.setSimilarity($p.getSimilarity() + 0.1);
+
 end
+
+rule "add similarity"
+agenda-group "profilesOfInterest"
+    salience 70
+    no-loop
+    lock-on-active
+    when
+    $fc : FinalCategorization() and
+    $focus: ProfileInFocus($main:profile) and
+    $p: ProfileOfInterest(
+        $profile: profile,
+        $profile.id != $main.id,
+        ofInterest==false)
+    $difference: Double() from accumulate(
+     Double($catFC: this) from $fc.getCategorization(),
+     init(Integer i = 0; Integer count = 0;),
+     action(
+        count += Math.abs($catFC-$p.getProfile().getFollowCategorization().getCategories().get(i));
+        i++;
+     ),
+     result(count)
+    )
+    then
+    $p.setSimilarity($p.getSimilarity() + 1 - $difference/(16*16));
+    System.out.println("similarityDiff:");
+    System.out.println($difference);
+end
+
+rule "boost top categories similarity"
+ salience 60
+    no-loop
+    lock-on-active
+    when
+    $fc : FinalCategorization() and
+    $focus: ProfileInFocus($main:profile) and
+    $p:ProfileOfInterest(
+             $profile:profile,
+             $profile.id != $main.id,
+             ofInterest==false) and
+    $top: TopCategories($topC:topCategories, $noc:numOfCats) and
+    $difference: Double() from accumulate(
+     Integer($i:this) from $topC,
+     init(Integer count = 0;),
+     action(
+        count += Math.abs($fc.getCategorization().get($i)-$p.getProfile().getFollowCategorization().getCategories().get($i));
+     ),
+     result(count)
+    )
+    then
+    $p.setSimilarity($p.getSimilarity() + 1 - $difference/($noc*16));
+    System.out.println("top categories similarity:");
+    System.out.println($difference);
+end;
 
 rule "filter ofInterest"
     agenda-group "profilesOfInterest"
@@ -114,18 +165,12 @@ rule "filter ofInterest"
     no-loop
     lock-on-active
     when
-    $profiles: List() from collect(
-        ProfileOfInterest(
+      $p: ProfileOfInterest(
         ofInterest==false,
         similarity>0.45
-        ))
+        )
     then
-    for (Object p: $profiles) {
-        ((ProfileOfInterest)p).setOfInterest(true);
-    }
+        $p.setOfInterest(true);
 end
-
-
-//ostalo da se ukalkulise i lokacija
 
 

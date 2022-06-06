@@ -23,4 +23,5 @@ public class PostDto {
     private List<Category> categories;
     private LocalDateTime time;
     private int numOfShares;
+    private boolean viral;
 }

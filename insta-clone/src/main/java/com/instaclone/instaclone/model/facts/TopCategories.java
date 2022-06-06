@@ -17,12 +17,16 @@ public class TopCategories {
     //indexi top kategorija
     List<Integer> topCategories;
     List<Category> categoryNames;
+    int numOfCats;
 
     public TopCategories(List<Integer> tops) {
-        topCategories = tops;
-        categoryNames = new ArrayList<>();
+        this.topCategories = tops;
+        this.categoryNames = new ArrayList<>();
         for (Integer ordinal : topCategories) {
             categoryNames.add(Category.values()[ordinal]);
         }
+        this.numOfCats = topCategories.size();
+
     }
+
 }

@@ -266,6 +266,7 @@ public class DataLoader implements CommandLineRunner {
                 .reactions(List.of(reakc11, reakc12))
                 .location(postl1)
                 .categories(List.of(Category.URBAN_LIFE))
+                .numOfShares(9999)
                 .build();
 
         Post p2 = Post.builder()
@@ -275,6 +276,7 @@ public class DataLoader implements CommandLineRunner {
                 .reactions(List.of(reakc21, reakc22))
                 .location(postl2)
                 .categories(List.of(Category.ANIMALS, Category.NATURE, Category.HEALTH_BEAUTY, Category.SELFIE))
+                .numOfShares(9999)
                 .build();
 
         p1.setTimeCreated(LocalDateTime.now());
@@ -287,6 +289,7 @@ public class DataLoader implements CommandLineRunner {
                 .reactions(List.of())
                 .location(postl3)
                 .categories(List.of(Category.ANIMALS, Category.NATURE, Category.MEME))
+                .numOfShares(5000)
                 .build();
         p3.setTimeCreated(LocalDateTime.now());
 
@@ -296,6 +299,7 @@ public class DataLoader implements CommandLineRunner {
                 .text("Post 1 neki text")
                 .reactions(List.of())
                 .categories(List.of(Category.ANIMALS, Category.NATURE))
+                .numOfShares(5692)
                 .build();
         p4.setTimeCreated(LocalDateTime.now());
 

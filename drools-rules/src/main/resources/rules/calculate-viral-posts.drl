@@ -1,7 +1,0 @@
-package rules;
-dialect  "mvel"
-
-rule "calculate-viral-posts"
-    when
-    then
-end
