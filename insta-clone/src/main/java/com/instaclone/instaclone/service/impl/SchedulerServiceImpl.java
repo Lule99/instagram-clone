@@ -49,16 +49,7 @@ public class SchedulerServiceImpl implements SchedulerService {
 
 
     private void addNewViralPosts() {
-        LocalDateTime lastWeek = LocalDateTime.now().minus(7, ChronoUnit.DAYS);
-        List<Post> lastWeekPosts = postService.getPostsAfter(lastWeek);
-        KieSession kieSession = kieContainer.newKieSession("testSession");
-        kieSession.getAgenda().getAgendaGroup("scheduledViralPosts").setFocus();
-        lastWeekPosts.forEach(kieSession::insert);
-        kieSession.fireAllRules();
-        kieSession.dispose();
-
-        postService.saveAll(lastWeekPosts);
-
+        postService.calculateViralPosts();
     }
 
 

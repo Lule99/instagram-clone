@@ -36,6 +36,7 @@ public class PostToPostDto extends Converter<Post, PostDto> {
                 .text(source.getText())
                 .categories(source.getCategories())
                 .time(source.getTimeCreated())
+                .viral(source.getViral() != null && source.getViral())
                 .build();
         Location location = source.getLocation();
         if (location != null)

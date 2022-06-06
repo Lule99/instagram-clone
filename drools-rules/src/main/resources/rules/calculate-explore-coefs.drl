@@ -6,6 +6,7 @@ import com.instaclone.instaclone.model.Categorization
 import com.instaclone.instaclone.model.facts.FinalCategorization
 import com.instaclone.instaclone.model.facts.TimeDifferenceConstantCalculation
 import com.instaclone.instaclone.model.enums.CategorizationType
+import com.instaclone.instaclone.model.facts.ProfileOfInterest
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit
 import java.util.List;
@@ -53,6 +54,7 @@ rule "calculate-boosting-coefs-difference-7-to-30"
     $tdc : TimeDifferenceConstantCalculation(dayDifference > 7, dayDifference < 30,  active == false)
     then
     //balansirano follow/post odnos [1-24]*follow + [7-30]*post
+        System.out.println("calculate boosting coefs difference 7 to 30");
     modify($tdc){
         setActive(true),
         setBoostFollowCoef(31 - Math.abs($tdc.getDayDifference())),
@@ -68,6 +70,7 @@ rule "calculate-boosting-coefs-difference-more-than-30"
     $tdc : TimeDifferenceConstantCalculation(dayDifference > 30, active == false)
     then
     //forsiraj post sa konstantnom vrednoscu odnos 1*follow + 30 post
+        System.out.println("calculate boosting coefs difference more than 7");
     modify($tdc){
         setActive(true),
         setBoostFollowCoef(1.0),
@@ -82,9 +85,12 @@ rule "follow-categorization-update-recently"
     when
      $followCategories : Categorization(active,
                          categorizationType == CategorizationType.FOLLOW,
-                         lastUpdate.isAfter(LocalDateTime.now().minus(7, ChronoUnit.DAYS)))
+                         $lu:lastUpdate,
+                         $lu.isAfter(LocalDateTime.now().minus(7, ChronoUnit.DAYS)))
      $tdc : TimeDifferenceConstantCalculation(active)
     then
+        System.out.println("follow-categorization-update-recently");
+
     finalCategorization.setInitilized(true);
     finalCategorization.setCategorization($followCategories.getCategories());
     insert(finalCategorization)
@@ -96,21 +102,27 @@ rule "follow-categorization-update-long-ago-post-is-recent"
     when
      $followCategories : Categorization(active,
                         categorizationType== CategorizationType.FOLLOW,
-                        lastUpdate.isBefore(LocalDateTime.now().minus(7, ChronoUnit.DAYS)))
+                        lastUpdate.isBefore(LocalDateTime.now().minus(7, ChronoUnit.DAYS)),
+                        $followList:categories)
      $postCategories : Categorization(active,
                         categorizationType== CategorizationType.POST,
-                        lastUpdate.isAfter(LocalDateTime.now().minus(7, ChronoUnit.DAYS)))
+                        lastUpdate.isAfter(LocalDateTime.now().minus(7, ChronoUnit.DAYS)),
+                        $finalList:categories)
      $tdc : TimeDifferenceConstantCalculation(active)
-
+     $categorization: List() from accumulate(
+        Double(val1:this) from $finalList,
+        init(int i = 0;),
+        action(
+            $finalList.set(i,($tdc.getBoostPostCoef() * $finalList.get(i) + $tdc.getBoostFollowCoef() * $followList.get(i))
+            /($tdc.getBoostPostCoef())+$tdc.getBoostFollowCoef());
+            i++;
+        ),
+        result($finalList)
+     )
     then
+    System.out.println("follow-categorization-update-long-ago-post-is-recent");
     finalCategorization.setInitilized(true);
-    List $finalList =  $postCategories.getCategories();
-    List $followList = $followCategories.getCategories();
-    for( int i =0; i< $finalList.size(); i++) {
-        $finalList.set(i, ($tdc.getBoostPostCoef() * $finalList.get(i) + $tdc.getBoostFollowCoef() * $followList.get(i))
-        /($tdc.getBoostPostCoef())+$tdc.getBoostFollowCoef());
-    }
-    finalCategorization.setCategorization($finalList);
+    finalCategorization.setCategorization($categorization);
     insert(finalCategorization)
 end
 
@@ -120,20 +132,27 @@ rule "follow-categorization-update-long-ago-post-also"
     when
      $followCategories : Categorization(active,
                         categorizationType== CategorizationType.FOLLOW,
-                        lastUpdate.isBefore(LocalDateTime.now().minus(7, ChronoUnit.DAYS)))
+                        lastUpdate.isBefore(LocalDateTime.now().minus(7, ChronoUnit.DAYS)),
+                        $followList:categories)
      $postCategories : Categorization(active,
                         categorizationType== CategorizationType.POST,
-                        lastUpdate.isBefore(LocalDateTime.now().minus(7, ChronoUnit.DAYS)))
+                        lastUpdate.isBefore(LocalDateTime.now().minus(7, ChronoUnit.DAYS)),
+                        $finalList:categories)
      $tdc : TimeDifferenceConstantCalculation(active)
+     $categorization: List() from accumulate(
+             Double(val1:this) from $finalList,
+             init(int i = 0;),
+             action(
+                 $finalList.set(i,($tdc.getBoostPostCoef() * $finalList.get(i) + 3.0 * $tdc.getBoostFollowCoef() * $followList.get(i))
+                 /($tdc.getBoostPostCoef()) + $tdc.getBoostFollowCoef() + 3);
+                 i++;
+             ),
+             result($finalList)
+          )
     then
+    System.out.println("follow-categorization-update-long-ago-post-also");
     finalCategorization.setInitilized(true);
-    List $finalList =  $postCategories.getCategories();
-    List $followList = $followCategories.getCategories();
-    for( int i =0; i< $finalList.size(); i++) {
-        $finalList.set(i, ($tdc.getBoostPostCoef() * $finalList.get(i) + 3.0* $tdc.getBoostFollowCoef() * $followList.get(i))
-        /($tdc.getBoostPostCoef())+$tdc.getBoostFollowCoef() + 3.0);
-    }
-    finalCategorization.setCategorization($finalList);
+    finalCategorization.setCategorization($categorization);
     insert(finalCategorization)
 
 
@@ -143,18 +162,23 @@ rule "final-categorization"
     agenda-group "explore"
     no-loop true
     when
-     $final : FinalCategorization(initilized)
-     $profile : Profile(active,
-                        //viral,
+        $profile : Profile(active,
+                        viral,
                         $postCategories : postCategorization
                         )
+        $final : FinalCategorization(initilized, $viralsCat : getCategorization())
+        $finalList: List() from accumulate(
+            Double($cat: this) from $viralsCat,
+            init(int i = 0; Double res = 0;),
+            action(
+                res = (8.0 * $result.get(i) + 2.0 * $postCategories.getCategories().get(i))/10;
+                i++;
+            ),
+            result(res)
+
+        )
      then
-     List $result= finalCategorization.getCategorization();
-        for( int i =0; i< $result.size(); i++) {
-            $result.set(i, (8.0 * $result.get(i) + 2.0 * $postCategories.getCategories().get(i))/10);
-        }
-        finalCategorization.setCategorization($result);
-
-
+     System.out.println("Viral profiles get slight boost on categories which they prefer to post");
+     finalCategorization.setCategorization($finalList);
 end
 

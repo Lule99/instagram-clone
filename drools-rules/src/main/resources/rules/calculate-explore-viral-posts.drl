@@ -10,7 +10,7 @@ import static java.lang.Math.abs;
 rule "high sentiment"
     agenda-group "viral-posts"
     no-loop
-    when                                // snaznoizrazen poz/ neg sentiment
+    when                                // snaznoi zrazen poz/ neg sentiment
     $post: ViralPost($interactions:numOfInteractions,
     Math.abs(reactionsByType.get(0)-reactionsByType.get(1)+reactionsByType.get(2)-reactionsByType.get(3)-reactionsByType.get(4))/numOfInteractions > 0.5)
     then

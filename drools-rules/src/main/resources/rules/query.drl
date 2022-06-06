@@ -1,0 +1,68 @@
+package rules;
+dialect  "mvel"
+
+import com.instaclone.instaclone.model.Post
+import com.instaclone.instaclone.model.Profile
+import java.util.List
+import java.util.Set
+import java.time.LocalDateTime
+import java.lang.Double
+
+
+query lastNDaysMoreThanKReactions(LocalDateTime thresholdTime,
+                                  Integer thresholdShares,
+                                  Integer thresholdReactions)
+    $res: List() from collect(
+        Post(timeCreated.isAfter(thresholdTime),
+         numOfShares > thresholdShares
+          || reactions.size() > thresholdReactions)
+    )
+end;
+
+
+query viralByAvgFollowInteractionsRelation(LocalDateTime thresholdTime, Double avgFollowers)
+    $res: List() from collect(
+        Post($viral:this,
+         timeCreated>thresholdTime,
+          numOfShares > 5 * avgFollowers ||
+          reactions.size() > 10 * avgFollowers)
+    )
+end;
+
+query viralByFollowNumOfInteractionsRelation(LocalDateTime thresholdTime)
+    $res: List() from collect(
+        Post($viral:this,
+         timeCreated>thresholdTime,
+          numOfShares > 1.5 * publisher.following.size() ||
+          reactions.size() > 3 * publisher.following.size())
+    )
+end;
+
+//query areConnected(Profile p1, Profile p2)
+//    Profile(id == p1.id, following contains p2)
+//    or
+//    (Profile(id == p1.id, following contains temp) and areConnected(temp, p2))
+//
+//end;
+
+
+query getAverageFollowers()
+    $avg: Number() from accumulate(
+        Post($folls:publisher.followers),
+        init(int i = 1; int count = 0;),
+        action(
+            count += $folls.size()
+            i++;
+        ),
+        result(count/i)
+    )
+end;
+
+
+
+
+
+
+
+
+

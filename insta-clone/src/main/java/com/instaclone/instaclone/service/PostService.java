@@ -34,4 +34,6 @@ public interface PostService extends JPAService<Post> {
     List<Post> getPostsAfter(LocalDateTime afterDate);
 
     Boolean reload(String name);
+
+    void calculateViralPosts();
 }
