@@ -105,17 +105,7 @@ public class ProfileServiceImpl extends JPAServiceImpl<Profile> implements Profi
         kieSession.fireAllRules();
         kieSession.dispose();
 
-        finalSuggestions.sort((o1, o2) -> o1.getSimilarity() > o2.getSimilarity() ? 1 : 0);
-
-        finalSuggestions.forEach(finalSuggestion -> {
-            System.out.println(finalSuggestion.getProfile().getName());
-            System.out.println(finalSuggestion.getSimilarity());
-            System.out.println("------------------------------------");
-        });
-
         List<User> suggestions = finalSuggestions.stream().map(sugg -> sugg.getProfile().getUser()).collect(Collectors.toList());
-
-
         page = Math.max(page, 0);
         size = Math.max(size, 1);
         Pageable pageable = PageRequest.of(page, size, Sort.Direction.DESC, "timeCreated");

@@ -6,6 +6,7 @@ import com.instaclone.instaclone.events.NoInteractionEvent;
 import com.instaclone.instaclone.events.UpdateParametersEvent;
 import com.instaclone.instaclone.events.ChangeCompleteParametersEvent;
 import com.instaclone.instaclone.events.ReactionEvent;
+import com.instaclone.instaclone.events.LongScrollingEvent;
 import java.util.List;
 
 declare window numberOfReactions
@@ -23,6 +24,11 @@ declare window numberOfUPEvent
 	UpdateParametersEvent() over window:time(24h)
 end
 
+declare window numberOfLSEvent
+	@doc("Number of longScrollingEvent on explore in last 10min")
+	LongScrollingEvent() over window:time(10m)
+end
+
 query "getUpdateParametersEvent"
     $result: UpdateParametersEvent(processed == false)
 end
@@ -36,7 +42,7 @@ rule "Reload rule"
     when
         $reloadEvent: ReloadEvent(processed == false, $profile: profile) and
         Number(intValue == 0) from accumulate (
-        			$re: ReactionEvent(profile == $profile,
+        			$re: ReactionEvent(profile.getId() == $profile.getId(),
         			    profile.getFollowing() not contains fromProfile) from window numberOfReactions,
         			count($re)
         		)
@@ -55,11 +61,13 @@ rule "NoInteraction rule"
         $n: Number(intValue >= 3) from accumulate (
                 			$re: NoInteractionEvent(profile.getId() == $profile.getId(), processed == false) from window numberOfNoInteractions,
                 			count($re)
-                		)
+                		) and
+        $lse : LongScrollingEvent(profile.getId() == $profile.getId(), processed == false)
     then
-        System.out.println("3 puta bez interakcije, pravim UpdateParametersEvent!");
+        System.out.println("3 puta bez interakcije i lse, pravim UpdateParametersEvent!");
         UpdateParametersEvent $upE = new UpdateParametersEvent($profile, false);
         modify($noInteraction){setProcessed(true)}
+        modify($lse){setProcessed(true)}
         insert($upE);
 end
 

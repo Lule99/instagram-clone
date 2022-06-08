@@ -155,7 +155,7 @@ rule "Calculate age similarity = 0 - level 2"
         System.out.println("Ista starosna grupa!");
         double $similarity = $profileSuggestion.getSimilarity() + 5;
         FinalSuggestion $fS = new FinalSuggestion($profileSuggestion.getProfile(), $similarity);
-        finalSuggestions.add($fS);
+        insert($fS);
         delete($profileSuggestion);
 
 end
@@ -171,7 +171,7 @@ rule "Calculate age similarity = 1 - level 2"
         System.out.println("Starosne grupe se razlikuju za 1!");
         double $similarity = $profileSuggestion.getSimilarity() + 3;
         FinalSuggestion $fS = new FinalSuggestion($profileSuggestion.getProfile(), $similarity);
-        finalSuggestions.add($fS);
+        insert($fS);
         delete($profileSuggestion);
 
 end
@@ -187,7 +187,7 @@ rule "Calculate age similarity = 2 - level 2"
         System.out.println("Starosne grupe se razlikuju za 2!");
         double $similarity = $profileSuggestion.getSimilarity() + 1;
         FinalSuggestion $fS = new FinalSuggestion($profileSuggestion.getProfile(), $similarity);
-        finalSuggestions.add($fS);
+        insert($fS);
         delete($profileSuggestion);
 
 end
@@ -203,7 +203,18 @@ rule "Calculate age similarity = 3 - level 2"
         System.out.println("Starosne grupe se razlikuju za 3!");
         double $similarity = $profileSuggestion.getSimilarity() - 1;
         FinalSuggestion $fS = new FinalSuggestion($profileSuggestion.getProfile(), $similarity);
-        finalSuggestions.add($fS);
+//        finalSuggestions.add($fS);
+        insert($fS);
         delete($profileSuggestion);
 
+end
+
+rule "Sort suggestions"
+    agenda-group "suggestions"
+    salience -Integer.MAX_VALUE + $similarity
+    when
+        $fS: FinalSuggestion($similarity: similarity)
+    then
+       System.out.println("Insertujem u listu fs sa koef:" + $similarity);
+       finalSuggestions.add($fS);
 end

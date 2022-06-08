@@ -36,4 +36,6 @@ public interface PostService extends JPAService<Post> {
     Boolean reload(String name);
 
     void calculateViralPosts();
+
+    void checkForEvent(String username, int page);
 }

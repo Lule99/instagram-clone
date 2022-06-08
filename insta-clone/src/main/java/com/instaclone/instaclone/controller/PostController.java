@@ -4,9 +4,7 @@ import com.instaclone.instaclone.dto.post.NewPostDto;
 import com.instaclone.instaclone.dto.post.PostDto;
 import com.instaclone.instaclone.dto.post.UpdatePostDto;
 import com.instaclone.instaclone.service.PostService;
-import org.kie.api.runtime.KieSession;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -31,6 +29,7 @@ public class PostController {
     @PreAuthorize("hasAnyAuthority('REGULAR_USER')")
     @GetMapping(value = "/explore", produces = MediaType.APPLICATION_JSON_VALUE)
     public Page<PostDto> getExplore(@RequestParam int page, @RequestParam int size, Authentication authentication) {
+        postService.checkForEvent(authentication.getName(), page);
         return postService.getExplore(authentication.getName(), page, size);
     }
 

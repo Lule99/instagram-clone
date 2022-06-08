@@ -42,10 +42,10 @@ public class Profile extends BaseEntity{
     @OneToMany
     private List<Post> posts;
 
-    @ManyToMany(cascade = CascadeType.ALL)
+    @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private Set<Profile> followers;
 
-    @ManyToMany(cascade = CascadeType.ALL)
+    @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private Set<Profile> following;
 
     @OneToOne
