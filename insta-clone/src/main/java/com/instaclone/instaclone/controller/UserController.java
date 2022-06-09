@@ -77,8 +77,8 @@ public class UserController {
 
     @PreAuthorize("hasAnyAuthority('REGULAR_USER')")
     @GetMapping(value = "/suggestions", produces = MediaType.APPLICATION_JSON_VALUE)
-    public Page<ProfileInfoDto> getSuggestions(@RequestParam int page, @RequestParam int size, Authentication authentication) {
-        return profileService.getSuggestions(authentication.getName(), page, size);
+    public List<ProfileInfoDto> getSuggestions(Authentication authentication) {
+        return profileService.getSuggestions(authentication.getName());
     }
 
 

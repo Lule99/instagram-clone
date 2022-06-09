@@ -5,6 +5,7 @@ import com.instaclone.instaclone.model.facts.ProfileForCalculatingSuggestions;
 import com.instaclone.instaclone.model.facts.FavoriteCategories;
 import com.instaclone.instaclone.model.enums.Category;
 import com.instaclone.instaclone.model.Profile;
+import com.instaclone.instaclone.model.facts.ProfileDrools;
 import com.instaclone.instaclone.model.facts.ProfileSuggestion;
 import com.instaclone.instaclone.model.Categorization;
 import com.instaclone.instaclone.model.Location;
@@ -41,16 +42,16 @@ rule "Similar profiles rule - level 1"
     when
         $favoriteCategories: FavoriteCategories(processed == false, $categories: categories) and
         $profileForCalculating: ProfileForCalculatingSuggestions(processed == true, $profile: profile) and
-        $profiles: List() from collect( Profile(id != $profile.id,
+        $profiles: List() from collect( ProfileDrools(id != $profile.id,
                                         $otherProfile: this,
-                                        $profile.getFollowing() not contains $otherProfile) )
+                                        $profile.getFollowing() not contains $otherProfile.getId()) )
     then
         for (Object profile : $profiles) {
             double coef = 0.;
             for(Category cat: $categories) {
-                coef += ((Profile) profile).getPostCategorization().getCategories().get(cat.ordinal());
+                coef += ((ProfileDrools) profile).getPostCategorization().getCategories().get(cat.ordinal());
             }
-            ProfileSuggestion $profileSuggestion = new ProfileSuggestion((Profile) profile, coef, null);
+            ProfileSuggestion $profileSuggestion = new ProfileSuggestion((ProfileDrools) profile, coef, null);
             insert($profileSuggestion);
         }
 
@@ -74,7 +75,7 @@ rule "Location calucated - CLOSE"
     when
         $profileForCalculating: ProfileForCalculatingSuggestions(processed == true, $profile: profile)
         $distanceCalculated: DistanceCalculated(distance < 100000, $location: location)
-        $profileSuggestion: ProfileSuggestion(profile != $profile, locationCalculated != true, profile.location == $location)
+        $profileSuggestion: ProfileSuggestion(profile.getId() != $profile.getId(), locationCalculated != true, profile.location == $location)
     then
         System.out.println("Postavio close");
         insert(new LocationCalculated($profileSuggestion.getProfile(), LocationCategory.CLOSE))
@@ -86,7 +87,7 @@ rule "Location calucated - MEDIUM"
     when
         $profileForCalculating: ProfileForCalculatingSuggestions(processed == true, $profile: profile)
         $distanceCalculated: DistanceCalculated(distance > 100000, distance < 400000, $location: location)
-        $profileSuggestion: ProfileSuggestion(profile != $profile, locationCalculated != true, profile.location == $location)
+        $profileSuggestion: ProfileSuggestion(profile.getId() != $profile.getId(), locationCalculated != true, profile.location == $location)
     then
         System.out.println("Postavio medium");
         insert(new LocationCalculated($profileSuggestion.getProfile(), LocationCategory.MEDIUM))
@@ -98,7 +99,7 @@ rule "Location calucated - FAR"
     when
         $profileForCalculating: ProfileForCalculatingSuggestions(processed == true, $profile: profile)
         $distanceCalculated: DistanceCalculated(distance > 400000, $location: location)
-        $profileSuggestion: ProfileSuggestion(profile != $profile, locationCalculated != true, profile.location == $location)
+        $profileSuggestion: ProfileSuggestion(profile.getId() != $profile.getId(), locationCalculated != true, profile.location == $location)
     then
         System.out.println("Postavio far");
         insert(new LocationCalculated($profileSuggestion.getProfile(), LocationCategory.FAR))
@@ -111,7 +112,7 @@ rule "Update coef - Close profiles"
     when
         $profileForCalculating: ProfileForCalculatingSuggestions(processed == true, $profile: profile)
         $locationCalculated: LocationCalculated(locationCategory == LocationCategory.CLOSE, $location: to.location)
-        $profileSuggestion: ProfileSuggestion(profile != $profile, locationCalculated != true, profile.location == $location)
+        $profileSuggestion: ProfileSuggestion(profile.getId() != $profile.getId(), locationCalculated != true, profile.location == $location)
     then
         System.out.println("Postavljam koeficijent za CLOSE");
         double $similarity = $profileSuggestion.getSimilarity() + 5;
@@ -124,7 +125,7 @@ rule "Update coef - Medium profiles"
     when
         $profileForCalculating: ProfileForCalculatingSuggestions(processed == true, $profile: profile)
         $locationCalculated: LocationCalculated(locationCategory == LocationCategory.MEDIUM, $location: to.location)
-        $profileSuggestion: ProfileSuggestion(profile != $profile, locationCalculated != true, profile.location == $location)
+        $profileSuggestion: ProfileSuggestion(profile.getId() != $profile.getId(), locationCalculated != true, profile.location == $location)
     then
         System.out.println("Postavljam koeficijent za Medium");
         double $similarity = $profileSuggestion.getSimilarity() + 3;
@@ -137,7 +138,7 @@ rule "Update coef - Far profiles"
     when
         $profileForCalculating: ProfileForCalculatingSuggestions(processed == true, $profile: profile)
         $locationCalculated: LocationCalculated(locationCategory == LocationCategory.FAR, $location: to.location)
-        $profileSuggestion: ProfileSuggestion(profile != $profile, locationCalculated != true, profile.location == $location)
+        $profileSuggestion: ProfileSuggestion(profile.getId() != $profile.getId(), locationCalculated != true, profile.location == $location)
     then
         System.out.println("Postavljam koeficijent za Far");
         double $similarity = $profileSuggestion.getSimilarity() + 1;
@@ -148,7 +149,7 @@ rule "Calculate age similarity = 0 - level 2"
     agenda-group "suggestions"
     when
         $profileForCalculating: ProfileForCalculatingSuggestions(processed == true, $profile: profile)
-        $profileSuggestion: ProfileSuggestion(profile != $profile,
+        $profileSuggestion: ProfileSuggestion(profile.getId() != $profile.getId(),
             Math.abs(profile.getAgeCategory().ordinal() - $profile.getAgeCategory().ordinal()) == 0,
             locationCalculated == true)
     then
@@ -164,7 +165,7 @@ rule "Calculate age similarity = 1 - level 2"
     agenda-group "suggestions"
     when
         $profileForCalculating: ProfileForCalculatingSuggestions(processed == true, $profile: profile)
-        $profileSuggestion: ProfileSuggestion(profile != $profile,
+        $profileSuggestion: ProfileSuggestion(profile.getId() != $profile.getId(),
             Math.abs(profile.getAgeCategory().ordinal() - $profile.getAgeCategory().ordinal()) == 1,
             locationCalculated == true)
     then
@@ -180,7 +181,7 @@ rule "Calculate age similarity = 2 - level 2"
     agenda-group "suggestions"
     when
         $profileForCalculating: ProfileForCalculatingSuggestions(processed == true, $profile: profile)
-        $profileSuggestion: ProfileSuggestion(profile != $profile,
+        $profileSuggestion: ProfileSuggestion(profile.getId() != $profile.getId(),
             Math.abs(profile.getAgeCategory().ordinal() - $profile.getAgeCategory().ordinal()) == 2,
             locationCalculated == true)
     then
@@ -196,7 +197,7 @@ rule "Calculate age similarity = 3 - level 2"
     agenda-group "suggestions"
     when
         $profileForCalculating: ProfileForCalculatingSuggestions(processed == true, $profile: profile)
-        $profileSuggestion: ProfileSuggestion(profile != $profile,
+        $profileSuggestion: ProfileSuggestion(profile.getId() != $profile.getId(),
             Math.abs(profile.getAgeCategory().ordinal() - $profile.getAgeCategory().ordinal()) == 3,
             locationCalculated == true)
     then

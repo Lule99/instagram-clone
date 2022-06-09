@@ -12,6 +12,6 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 public class LocationCalculated {
-    private Profile to;
+    private ProfileDrools to;
     private LocationCategory locationCategory;
 }
