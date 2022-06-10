@@ -83,34 +83,40 @@ public class DataLoader implements CommandLineRunner {
         Categorization pc1 = Categorization.builder()
                 .lastUpdate(LocalDateTime.now())
                 .categorizationType(CategorizationType.POST)
-                .categories(List.of(1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0))
+                .categories(List.of(1.0/16.0, 9.0/16.0, 20.0/16.0, 30.0/16.0, 40.0/16.0, 33.0/16.0, 17.0/16.0,
+                        11.0/16.0, 13.0/16.0, 1.0, 20.0/16.0, 18.0/16.0, 8.0/16.0, 10.0/16.0, 5.0/16.0, 5.0/16.0)) //sum je 256/16
                 .build();
         Categorization fc1 = Categorization.builder()
                 .lastUpdate(LocalDateTime.now())
                 .categorizationType(CategorizationType.FOLLOW)
-                .categories(List.of(1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0))
+                .categories(List.of(9.0/16.0, 20.0/16.0, 30.0/16.0, 40.0/16.0, 33.0/16.0, 17.0/16.0, 1.0/16,
+                        8.0/16.0, 10.0/16.0, 5.0/16.0, 5.0/16.0, 11.0/16.0, 13.0/16.0, 1.0, 20.0/16.0, 18.0/16.0)) //sum 256/16
                 .build();
 
         Categorization pc2 = Categorization.builder()
                 .lastUpdate(LocalDateTime.now())
                 .categorizationType(CategorizationType.POST)
-                .categories(List.of(1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0))
+                .categories(List.of(9.0/16.0, 20.0/16.0, 30.0/16.0, 40.0/16.0, 33.0/16.0, 17.0/16.0, 1.0/16,
+                        8.0/16.0, 10.0/16.0, 5.0/16.0, 5.0/16.0, 11.0/16.0, 13.0/16.0, 1.0, 20.0/16.0, 18.0/16.0)) //sum 256/16
                 .build();
         Categorization fc2 = Categorization.builder()
                 .lastUpdate(LocalDateTime.now())
                 .categorizationType(CategorizationType.FOLLOW)
-                .categories(List.of(1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0))
+                .categories(List.of(1.0/16.0, 9.0/16.0, 20.0/16.0, 30.0/16.0, 40.0/16.0, 33.0/16.0, 17.0/16.0,
+                        11.0/16.0, 13.0/16.0, 1.0, 20.0/16.0, 18.0/16.0, 8.0/16.0, 10.0/16.0, 5.0/16.0, 5.0/16.0)) //sum je 256/16
                 .build();
 
         Categorization pc3 = Categorization.builder()
                 .lastUpdate(LocalDateTime.now())
                 .categorizationType(CategorizationType.POST)
-                .categories(List.of(1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0))
+                .categories(List.of(2.0/16.0, 8.0/16.0, 21.0/16.0, 29.0/16.0, 41.0/16.0, 32.0/16.0, 18.0/16.0,
+                        10.0/16.0, 14.0/16.0, 17.0/16, 17.0/16.0, 19.0/16.0, 9.0/16.0,9.0/16.0, 6.0/16.0, 4.0/16.0)) //sum je 256/16 ova dva su isti
                 .build();
         Categorization fc3 = Categorization.builder()
                 .lastUpdate(LocalDateTime.now())
                 .categorizationType(CategorizationType.FOLLOW)
-                .categories(List.of(1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0, 1.0))
+                .categories(List.of(2.0/16.0, 8.0/16.0, 21.0/16.0, 29.0/16.0, 41.0/16.0, 32.0/16.0, 18.0/16.0,
+                        10.0/16.0, 14.0/16.0, 17.0/16, 17.0/16.0, 19.0/16.0, 9.0/16.0,9.0/16.0, 6.0/16.0, 4.0/16.0)) //sum je 256/16 ova dva su isti
                 .build();
         pc1.setTimeCreated();
         pc2.setTimeCreated();

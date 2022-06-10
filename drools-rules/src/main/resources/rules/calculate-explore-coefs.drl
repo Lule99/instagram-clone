@@ -1,7 +1,7 @@
 package rules;
 dialect  "mvel"
 import com.instaclone.instaclone.model.BaseEntity
-import com.instaclone.instaclone.model.Profile
+import com.instaclone.instaclone.model.facts.ProfileFact
 import com.instaclone.instaclone.model.Categorization
 import com.instaclone.instaclone.model.facts.FinalCategorization
 import com.instaclone.instaclone.model.facts.TimeDifferenceConstantCalculation
@@ -23,7 +23,7 @@ rule "find explore"
     agenda-group "explore"
     no-loop true
     when
-     $profile : Profile(active,
+     $profile : ProfileFact(active,
                         $followCategories : followCategorization,
                         $postCategories : postCategorization)
     then
@@ -86,13 +86,14 @@ rule "follow-categorization-update-recently"
      $followCategories : Categorization(active,
                          categorizationType == CategorizationType.FOLLOW,
                          $lu:lastUpdate,
-                         $lu.isAfter(LocalDateTime.now().minus(7, ChronoUnit.DAYS)))
+                         $lu.isAfter(LocalDateTime.now().minus(7, ChronoUnit.DAYS)),
+                         $cats: getCategories())
      $tdc : TimeDifferenceConstantCalculation(active)
     then
         System.out.println("follow-categorization-update-recently");
 
     finalCategorization.setInitilized(true);
-    finalCategorization.setCategorization($followCategories.getCategories());
+    finalCategorization.setCategorization($cats);
     insert(finalCategorization)
 end
 
@@ -162,10 +163,10 @@ rule "final-categorization"
     agenda-group "explore"
     no-loop true
     when
-        $profile : Profile(active,
-                        viral,
-                        $postCategories : postCategorization
-                        )
+        $profile : ProfileFact(active,
+                                viral,
+                                $postCategories : postCategorization
+                                )
         $final : FinalCategorization(initilized, $viralsCat : getCategorization())
         $finalList: List() from accumulate(
             Double($cat: this) from $viralsCat,

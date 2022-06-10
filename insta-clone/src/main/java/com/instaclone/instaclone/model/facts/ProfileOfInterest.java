@@ -12,7 +12,7 @@ import java.util.List;
 @NoArgsConstructor
 @Builder
 public class ProfileOfInterest {
-    private Profile profile;
+    private ProfileFact profile;
     private double similarity;
     private List<Double> differences;
     private double totalDiff;
@@ -26,7 +26,7 @@ public class ProfileOfInterest {
             this.differences.add(diff);
             this.totalDiff += diff;
             this.ofInterest = false;
-            this.profile = p;
+            this.profile = new ProfileFact(p);
         }
     }
 }

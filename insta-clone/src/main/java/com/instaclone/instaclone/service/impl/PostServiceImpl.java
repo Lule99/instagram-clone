@@ -269,7 +269,7 @@ public class PostServiceImpl extends JPAServiceImpl<Post> implements PostService
         KieSession kieSession = kieContainer.newKieSession("testSession");
         kieSession.setGlobal("finalCategorization", finalCategorization);
         kieSession.getAgenda().getAgendaGroup("explore").setFocus();
-        kieSession.insert(profile);
+        kieSession.insert(new ProfileFact(profile));
         kieSession.insert(tdc);
         kieSession.fireAllRules();
         kieSession.dispose();
@@ -280,7 +280,7 @@ public class PostServiceImpl extends JPAServiceImpl<Post> implements PostService
         TopCategories topCategories = getTopNCategories(finalCategorization, 4);
 
         List<Profile> profilesOfInterest = calculateProfilesOfInterest(finalCategorization, profile, topCategories);
-        List<Post> similarPosts = postRepository.getTop50ByPublisherInAndTimeCreatedBeforeOrderByTimeCreatedDesc(
+        List<Post> similarPosts = postRepository.getTop50ByPublisherInAndTimeCreatedAfterOrderByTimeCreatedDesc(
                 profilesOfInterest,
                 LocalDateTime.now().minus(30, ChronoUnit.DAYS));
         List<Post> viralPosts = includePostsByViralProfiles(topCategories);
@@ -321,11 +321,13 @@ public class PostServiceImpl extends JPAServiceImpl<Post> implements PostService
         KieSession kieSession = kieContainer.newKieSession("testSession");
         kieSession.getAgenda().getAgendaGroup("profilesOfInterest").setFocus();
 
-        ProfileInFocus mainProfile = ProfileInFocus.builder().profile(profile).build();
+        ProfileInFocus mainProfile = ProfileInFocus.builder().profile(new ProfileFact(profile)).build();
 
-        List<ProfileOfInterest> profiles = userService.getProfilesByViral(false).stream()
+        List<Profile> nonViralProfiles = userService.getProfilesByViral(false);
+
+        Set<ProfileOfInterest> profiles = nonViralProfiles.stream()
                 .map(p -> new ProfileOfInterest(p, finalCategorization.getCategorization()))
-                .collect(Collectors.toList());
+                .collect(Collectors.toSet());
 
         profiles.forEach(kieSession::insert);
         kieSession.insert(finalCategorization);
@@ -334,9 +336,14 @@ public class PostServiceImpl extends JPAServiceImpl<Post> implements PostService
         kieSession.fireAllRules();
         kieSession.dispose();
 
-        return profiles.stream()
+        Set<Long> idsOfInterest = profiles.stream()
                 .filter(ProfileOfInterest::isOfInterest)
-                .map(ProfileOfInterest::getProfile)
+                .map(profileOfInterest -> profileOfInterest.getProfile().getId())
+                .collect(Collectors.toSet());
+
+        return nonViralProfiles
+                .stream()
+                .filter(profile1 -> idsOfInterest.contains(profile1.getId()))
                 .collect(Collectors.toList());
     }
 
@@ -370,32 +377,32 @@ public class PostServiceImpl extends JPAServiceImpl<Post> implements PostService
         allPosts.forEach(kieSession::insert);
         allProfiles.forEach(kieSession::insert);
 
-        QueryResults averageFollowers = kieSession.getQueryResults("getAverageFollowers");
-        Double average = (Double) averageFollowers.toList().get(0).get("$avg");
-
-        QueryResults res = kieSession.getQueryResults(
-                "lastNDaysMoreThanKReactions",
-                LocalDateTime.now().minus(7, ChronoUnit.DAYS),
-                5000,
-                10000);
-        var posts = (List<Post>) (res.toList().get(0).get("$res"));
-
-        QueryResults res2 = kieSession.getQueryResults(
-                "viralByAvgFollowInteractionsRelation",
-                LocalDateTime.now().minus(7, ChronoUnit.DAYS),
-                average);
-        var posts2 = (List<Post>) (res2.toList().get(0).get("$res"));
-
-        QueryResults res3 = kieSession.getQueryResults(
-                "viralByFollowNumOfInteractionsRelation",
-                LocalDateTime.now().minus(7, ChronoUnit.DAYS));
-        var posts3 = (List<Post>) (res3.toList().get(0).get("$res"));
-
-        Set<Post> newVirals = Stream
-                .concat(Stream.concat(posts.stream(), posts2.stream()), posts3.stream())
-                .collect(Collectors.toSet());
-        newVirals.forEach(post -> post.setViral(true));
-        postRepository.saveAll(newVirals);
+//        QueryResults averageFollowers = kieSession.getQueryResults("getAverageFollowers");
+//        Double average = (Double) averageFollowers.toList().get(0).get("$avg");
+//
+//        QueryResults res = kieSession.getQueryResults(
+//                "lastNDaysMoreThanKReactions",
+//                LocalDateTime.now().minus(7, ChronoUnit.DAYS),
+//                5000,
+//                10000);
+//        var posts = (List<Post>) (res.toList().get(0).get("$res"));
+//
+//        QueryResults res2 = kieSession.getQueryResults(
+//                "viralByAvgFollowInteractionsRelation",
+//                LocalDateTime.now().minus(7, ChronoUnit.DAYS),
+//                average);
+//        var posts2 = (List<Post>) (res2.toList().get(0).get("$res"));
+//
+//        QueryResults res3 = kieSession.getQueryResults(
+//                "viralByFollowNumOfInteractionsRelation",
+//                LocalDateTime.now().minus(7, ChronoUnit.DAYS));
+//        var posts3 = (List<Post>) (res3.toList().get(0).get("$res"));
+//
+//        Set<Post> newVirals = Stream
+//                .concat(Stream.concat(posts.stream(), posts2.stream()), posts3.stream())
+//                .collect(Collectors.toSet());
+//        newVirals.forEach(post -> post.setViral(true));
+//        postRepository.saveAll(newVirals);
         kieSession.dispose();
     }
 }
