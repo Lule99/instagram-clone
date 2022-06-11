@@ -92,7 +92,7 @@ public class ProfileServiceImpl extends JPAServiceImpl<Profile> implements Profi
         List<FinalSuggestion> finalSuggestions = new ArrayList<>();
 
         User user = userRepository.findByUsername(username);
-        ProfileForCalculatingSuggestions profileForCalculatingSuggestions = new ProfileForCalculatingSuggestions(user.getProfile(), false);
+        ProfileForCalculatingSuggestions profileForCalculatingSuggestions = new ProfileForCalculatingSuggestions(profileToProfileDrools.convert(user.getProfile()), false);
 
         KieSession kieSession = kieContainer.newKieSession("testSession");
         kieSession.getAgenda().getAgendaGroup( "suggestions" ).setFocus();

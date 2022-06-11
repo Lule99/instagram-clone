@@ -42,7 +42,7 @@ rule "Similar profiles rule - level 1"
     when
         $favoriteCategories: FavoriteCategories(processed == false, $categories: categories) and
         $profileForCalculating: ProfileForCalculatingSuggestions(processed == true, $profile: profile) and
-        $profiles: List() from collect( ProfileDrools(id != $profile.id,
+        $profiles: List() from collect( ProfileDrools(id != $profile.getId(),
                                         $otherProfile: this,
                                         $profile.getFollowing() not contains $otherProfile.getId()) )
     then
