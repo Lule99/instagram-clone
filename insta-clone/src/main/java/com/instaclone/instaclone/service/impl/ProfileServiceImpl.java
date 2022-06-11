@@ -1,5 +1,6 @@
 package com.instaclone.instaclone.service.impl;
 
+import com.instaclone.instaclone.converter.user.ProfileToProfileDrools;
 import com.instaclone.instaclone.converter.user.UserToProfileInfoDtoConverter;
 import com.instaclone.instaclone.dto.user.ChangeFollowingStatusDto;
 import com.instaclone.instaclone.dto.user.ProfileInfoDto;
@@ -42,6 +43,7 @@ public class ProfileServiceImpl extends JPAServiceImpl<Profile> implements Profi
     private final KieContainer kieContainer;
     private final CategorizationService categorizationService;
     private final LocationService locationService;
+    private final ProfileToProfileDrools profileToProfileDrools;
 
     @Transactional
     @Override
@@ -85,12 +87,12 @@ public class ProfileServiceImpl extends JPAServiceImpl<Profile> implements Profi
     }
 
     @Override
-    public Page<ProfileInfoDto> getSuggestions(String username, int page, int size) {
+    public List<ProfileInfoDto> getSuggestions(String username) {
 
         List<FinalSuggestion> finalSuggestions = new ArrayList<>();
 
         User user = userRepository.findByUsername(username);
-        ProfileForCalculatingSuggestions profileForCalculatingSuggestions = new ProfileForCalculatingSuggestions(user.getProfile(), false);
+        ProfileForCalculatingSuggestions profileForCalculatingSuggestions = new ProfileForCalculatingSuggestions(profileToProfileDrools.convert(user.getProfile()), false);
 
         KieSession kieSession = kieContainer.newKieSession("testSession");
         kieSession.getAgenda().getAgendaGroup( "suggestions" ).setFocus();
@@ -99,28 +101,14 @@ public class ProfileServiceImpl extends JPAServiceImpl<Profile> implements Profi
         kieSession.setGlobal("locationService", locationService);
         kieSession.setGlobal("finalSuggestions", finalSuggestions);
         locationService.findAll().forEach(kieSession::insert);
-        this.findAll().forEach(kieSession::insert);
+        this.findAll().forEach(p -> kieSession.insert(profileToProfileDrools.convert(p)));
         kieSession.insert(profileForCalculatingSuggestions);
 
         kieSession.fireAllRules();
         kieSession.dispose();
 
-        finalSuggestions.sort((o1, o2) -> o1.getSimilarity() > o2.getSimilarity() ? 1 : 0);
-
-        finalSuggestions.forEach(finalSuggestion -> {
-            System.out.println(finalSuggestion.getProfile().getName());
-            System.out.println(finalSuggestion.getSimilarity());
-            System.out.println("------------------------------------");
-        });
-
-        List<User> suggestions = finalSuggestions.stream().map(sugg -> sugg.getProfile().getUser()).collect(Collectors.toList());
-
-
-        page = Math.max(page, 0);
-        size = Math.max(size, 1);
-        Pageable pageable = PageRequest.of(page, size, Sort.Direction.DESC, "timeCreated");
-        Page<User> pageOfProfiles = new PageImpl<>(suggestions);
-        return pageOfProfiles.map(userToProfileInfoDtoConverter::convert);
+        List<User> suggestions = finalSuggestions.stream().map(sugg -> userRepository.getById(sugg.getProfile().getUser())).collect(Collectors.toList());
+        return suggestions.stream().map(userToProfileInfoDtoConverter::convert).collect(Collectors.toList());
     }
 
 

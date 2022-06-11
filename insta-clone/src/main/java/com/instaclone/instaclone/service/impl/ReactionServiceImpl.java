@@ -2,6 +2,7 @@ package com.instaclone.instaclone.service.impl;
 
 import com.instaclone.instaclone.dto.reaction.ToggleReactionDto;
 import com.instaclone.instaclone.dto.reaction.ToggleReactionResponseDto;
+import com.instaclone.instaclone.events.ReactionEvent;
 import com.instaclone.instaclone.model.Post;
 import com.instaclone.instaclone.model.Reaction;
 import com.instaclone.instaclone.model.User;
@@ -14,6 +15,8 @@ import com.instaclone.instaclone.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.kie.api.runtime.KieContainer;
 import org.kie.api.runtime.KieSession;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 
@@ -29,6 +32,10 @@ public class ReactionServiceImpl extends JPAServiceImpl<Reaction> implements Rea
     private final UserService userService;
     private final KieContainer kieContainer;
     private final CategorizationRepository categorizationRepository;
+
+    @Autowired
+    @Qualifier(value = "cepSession")
+    private KieSession cepKieSession;
 
     @Override
     protected JpaRepository<Reaction, Long> getEntityRepository() {
@@ -83,6 +90,7 @@ public class ReactionServiceImpl extends JPAServiceImpl<Reaction> implements Rea
         categorizationRepository.save(user.getProfile().getFollowCategorization());
         postService.save(post);
 
+        cepKieSession.insert(new ReactionEvent(user.getProfile(), post.getPublisher()));
         return new ToggleReactionResponseDto(dto.getReactionType().toString(), false);
     }
 

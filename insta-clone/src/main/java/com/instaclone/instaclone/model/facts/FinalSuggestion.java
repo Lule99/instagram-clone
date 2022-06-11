@@ -11,6 +11,6 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 public class FinalSuggestion {
-    private Profile profile;
+    private ProfileDrools profile;
     private double similarity;
 }

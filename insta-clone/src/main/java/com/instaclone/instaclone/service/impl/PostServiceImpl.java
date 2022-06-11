@@ -5,6 +5,7 @@ import com.instaclone.instaclone.dto.post.NewPostDto;
 import com.instaclone.instaclone.dto.post.PostDto;
 import com.instaclone.instaclone.dto.post.UpdatePostDto;
 import com.instaclone.instaclone.events.ChangeCompleteParametersEvent;
+import com.instaclone.instaclone.events.LongScrollingEvent;
 import com.instaclone.instaclone.events.ReloadEvent;
 import com.instaclone.instaclone.events.UpdateParametersEvent;
 import com.instaclone.instaclone.exception.NoCategorizationException;
@@ -404,5 +405,14 @@ public class PostServiceImpl extends JPAServiceImpl<Post> implements PostService
 //        newVirals.forEach(post -> post.setViral(true));
 //        postRepository.saveAll(newVirals);
         kieSession.dispose();
+    }
+
+    @Override
+    public void checkForEvent(String username, int page) {
+        User user = userService.findByUsername(username);
+        if(page == 5) {
+            cepKieSession.insert(new LongScrollingEvent(user.getProfile(), false));
+            cepKieSession.fireAllRules();
+        }
     }
 }

@@ -9,7 +9,7 @@ import lombok.*;
 @NoArgsConstructor
 @Builder
 public class ProfileSuggestion {
-    private Profile profile;
+    private ProfileDrools profile;
     private double similarity;
     private Boolean locationCalculated;
 }

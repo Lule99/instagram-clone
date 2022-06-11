@@ -276,7 +276,7 @@ public class DataLoader implements CommandLineRunner {
                 .build();
 
         Post p2 = Post.builder()
-                .publisher(profile2)
+                .publisher(profile3)
                 .picture("/static/posts/2.jpg")
                 .text("Post 2 neki text")
                 .reactions(List.of(reakc21, reakc22))

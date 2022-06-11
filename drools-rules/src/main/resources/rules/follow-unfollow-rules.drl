@@ -1,4 +1,5 @@
 package rules;
+dialect "mvel"
 
 import com.instaclone.instaclone.model.facts.FollowUnfollow;
 import com.instaclone.instaclone.model.facts.enums.ToggleFollowType;
@@ -12,6 +13,7 @@ rule "Set toggle type UNFOLLOW - level 0"
     when
         $followUnfollow: FollowUnfollow(myProfile.getFollowing() contains otherProfile)
     then
+        System.out.println("Postavljam type na UNFOLLOW");
         modify($followUnfollow){setType(ToggleFollowType.UNFOLLOW)}
     end
 
@@ -21,6 +23,7 @@ rule "Set toggle type FOLLOW - level 0"
     when
         $followUnfollow: FollowUnfollow((myProfile.getFollowing() not contains otherProfile))
     then
+        System.out.println("Postavljam type na FOLLOW");
         modify($followUnfollow){setType(ToggleFollowType.FOLLOW)}
     end
 
@@ -45,6 +48,7 @@ rule "Follow rule - level 1"
                     result($myProfile.getFollowCategorization().getCategories())
                 )
     then
+        System.out.println("Ja: " + $myProfile.getName() + " sam zapration: " + $otherProfile.getName());
         $myProfile.getFollowCategorization().setCategories($newCategorization);
         $myProfile.getFollowCategorization().setLastUpdate(LocalDateTime.now());
         $myProfile.getFollowing().add($otherProfile);
@@ -72,6 +76,7 @@ rule "Unfollow rule - level 1"
                             result($myProfile.getFollowCategorization().getCategories())
                         )
     then
+        System.out.println("Ja: " + $myProfile.getName() + " sam otpratio: " + $otherProfile.getName());
         $myProfile.getFollowCategorization().setCategories($newCategorization);
         $myProfile.getFollowCategorization().setLastUpdate(LocalDateTime.now());
         $myProfile.getFollowing().remove($otherProfile);
