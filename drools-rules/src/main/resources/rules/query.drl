@@ -1,8 +1,9 @@
 package rules;
 dialect  "mvel"
 
-import com.instaclone.instaclone.model.Post
-import com.instaclone.instaclone.model.Profile
+import com.instaclone.instaclone.model.facts.PostFact
+import com.instaclone.instaclone.model.facts.ProfileFact
+import com.instaclone.instaclone.model.facts.MyLocation
 import java.util.List
 import java.util.Set
 import java.time.LocalDateTime
@@ -13,37 +14,31 @@ query lastNDaysMoreThanKReactions(LocalDateTime thresholdTime,
                                   Integer thresholdShares,
                                   Integer thresholdReactions)
     $res: List() from collect(
-        Post(timeCreated.isAfter(thresholdTime),
+        PostFact(timeCreated.isAfter(thresholdTime),
          numOfShares > thresholdShares
-          || reactions.size() > thresholdReactions)
+          || reactionsIds.size() > thresholdReactions)
     )
 end;
 
 
 query viralByAvgFollowInteractionsRelation(LocalDateTime thresholdTime, Double avgFollowers)
     $res: List() from collect(
-        Post($viral:this,
+        PostFact($viral:this,
          timeCreated>thresholdTime,
           numOfShares > 5 * avgFollowers ||
-          reactions.size() > 10 * avgFollowers)
+          reactionsIds.size() > 10 * avgFollowers)
     )
 end;
 
 query viralByFollowNumOfInteractionsRelation(LocalDateTime thresholdTime)
     $res: List() from collect(
-        Post($viral:this,
+        PostFact($viral:this,
          timeCreated>thresholdTime,
-          numOfShares > 1.5 * publisher.following.size() ||
-          reactions.size() > 3 * publisher.following.size())
+          numOfShares > 1.5 * publisher.followingIds.size() ||
+          reactionsIds.size() > 3 * publisher.followingIds.size())
     )
 end;
 
-//query areConnected(Profile p1, Profile p2)
-//    Profile(id == p1.id, following contains p2)
-//    or
-//    (Profile(id == p1.id, following contains temp) and areConnected(temp, p2))
-//
-//end;
 
 // da li se x prati y preko nekoga...
 //query areConnected(Profile x, Profile y)
@@ -52,21 +47,33 @@ end;
 //    (Profile(z, following contains y;) and areConnected(x, z;))
 //end;
 
-//query getAverageFollowers()
-//    $avg: Number() from accumulate(
-//        Post($folls:publisher.followers),
-//        init(int i = 1; int count = 0;),
-//        action(
-//            count += $folls.size()
-//            i++;
-//        ),
-//        result(count/i)
-//    )
-//end;
+query getAverageFollowers()
 
+    $avg: Number() from accumulate(
+        PostFact($folls:publisher.followersIds),
+        init(int i = 1; int count = 0;),
+        action(
+            count += $folls.size();
+            i++;
+        ),
+        result(count/i)
+    )
 
+end;
 
+query backward( String x, String y )
+  MyLocation( x, y; )
+  or
+  ( MyLocation( z, y; ) and backward( x, z; ) )
+end
 
+rule "go1"
+when
+    String( this == "go1" )
+    backward("subotica", "srbija"; )
+then
+    System.out.println( "subotica je u srbiji" );
+end
 
 
 

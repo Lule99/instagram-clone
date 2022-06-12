@@ -1,6 +1,7 @@
 package com.instaclone.instaclone.model;
 
 import lombok.*;
+import org.kie.api.definition.type.Position;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -13,9 +14,12 @@ import javax.persistence.Entity;
 @Entity
 public class Location extends BaseEntity {
 
-    private String state;
-    private String region;
-
+    @Position(0)
+    @Column(nullable = false)
+    private String name;
+    @Position(1)
+    @Column(nullable = false)
+    private String parent;
     @Column(nullable = false)
     private String locationName;
     @Column(nullable = false)

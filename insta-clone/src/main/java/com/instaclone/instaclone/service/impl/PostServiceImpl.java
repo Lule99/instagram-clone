@@ -78,15 +78,7 @@ public class PostServiceImpl extends JPAServiceImpl<Post> implements PostService
         newPost.setTimeCreated(LocalDateTime.now());
 
         if (dto.getLocation() != null) {
-            Location newLocation = new Location();
-            newLocation.setTimeCreated();
-            newLocation.setLocationName(dto.getLocation().getLocationName());
-            newLocation.setLongitude(dto.getLocation().getLongitude());
-            newLocation.setLatitude(dto.getLocation().getLatitude());
-            newLocation.setState(dto.getLocation().getState());
-            newLocation.setRegion(dto.getLocation().getRegion());
-
-            locationService.save(newLocation);
+            Location newLocation = locationService.preprocessLocation(dto.getLocation());
             newPost.setLocation(newLocation);
         }
 
@@ -256,7 +248,9 @@ public class PostServiceImpl extends JPAServiceImpl<Post> implements PostService
     }
 
     private Set<Post> calculateExplore(Profile profile) {
-//        calculateViralPosts();
+
+        ultimamivniBekwardChaining();
+        calculateViralPosts();
 
         FinalCategorization finalCategorization = FinalCategorization
                 .builder()
@@ -368,51 +362,83 @@ public class PostServiceImpl extends JPAServiceImpl<Post> implements PostService
     }
 
     public void calculateViralPosts() {
-//        KieSession kieSession = kieContainer.newKieSession("testSession");
-//        List<Post> allPosts = postRepository.findAll();
-//        List<Profile> allProfiles = userService
-//                .findAll()
-//                .stream()
-//                .map(User::getProfile)
-//                .collect(Collectors.toList());
-//        allPosts.forEach(kieSession::insert);
-//        allProfiles.forEach(kieSession::insert);
+        KieSession kieSession = kieContainer.newKieSession("testSession");
 
-//        QueryResults averageFollowers = kieSession.getQueryResults("getAverageFollowers");
-//        Double average = (Double) averageFollowers.toList().get(0).get("$avg");
-//
-//        QueryResults res = kieSession.getQueryResults(
-//                "lastNDaysMoreThanKReactions",
-//                LocalDateTime.now().minus(7, ChronoUnit.DAYS),
-//                5000,
-//                10000);
-//        var posts = (List<Post>) (res.toList().get(0).get("$res"));
-//
-//        QueryResults res2 = kieSession.getQueryResults(
-//                "viralByAvgFollowInteractionsRelation",
-//                LocalDateTime.now().minus(7, ChronoUnit.DAYS),
-//                average);
-//        var posts2 = (List<Post>) (res2.toList().get(0).get("$res"));
-//
-//        QueryResults res3 = kieSession.getQueryResults(
-//                "viralByFollowNumOfInteractionsRelation",
-//                LocalDateTime.now().minus(7, ChronoUnit.DAYS));
-//        var posts3 = (List<Post>) (res3.toList().get(0).get("$res"));
-//
-//        Set<Post> newVirals = Stream
-//                .concat(Stream.concat(posts.stream(), posts2.stream()), posts3.stream())
-//                .collect(Collectors.toSet());
-//        newVirals.forEach(post -> post.setViral(true));
-//        postRepository.saveAll(newVirals);
-//        kieSession.dispose();
+        List<Post> originalPosts = postRepository.findAll();
+
+        List<PostFact> allPostFactss = originalPosts
+                .stream()
+                .map(PostFact::new)
+                .collect(Collectors.toList());
+
+        List<ProfileFact> allProfiles = userService
+                .findAll()
+                .stream()
+                .map(user -> new ProfileFact(user.getProfile()))
+                .collect(Collectors.toList());
+
+        allPostFactss.forEach(kieSession::insert);
+        allProfiles.forEach(kieSession::insert);
+
+        QueryResults averageFollowers = kieSession.getQueryResults("getAverageFollowers");
+        Double average = (Double) averageFollowers.toList().get(0).get("$avg");
+
+        if (average == null || average < 1.0)
+            average = 1.0;
+
+        QueryResults res = kieSession.getQueryResults(
+                "lastNDaysMoreThanKReactions",
+                LocalDateTime.now().minus(7, ChronoUnit.DAYS),
+                5000,
+                10000);
+        var posts = (List<PostFact>) (res.toList().get(0).get("$res"));
+
+        QueryResults res2 = kieSession.getQueryResults(
+                "viralByAvgFollowInteractionsRelation",
+                LocalDateTime.now().minus(7, ChronoUnit.DAYS),
+                average);
+        var posts2 = (List<PostFact>) (res2.toList().get(0).get("$res"));
+
+        QueryResults res3 = kieSession.getQueryResults(
+                "viralByFollowNumOfInteractionsRelation",
+                LocalDateTime.now().minus(7, ChronoUnit.DAYS));
+        var posts3 = (List<PostFact>) (res3.toList().get(0).get("$res"));
+
+        Set<Long> newViralIds = Stream
+                .concat(Stream.concat(posts.stream(), posts2.stream()), posts3.stream())
+                .map(PostFact::getId)
+                .collect(Collectors.toSet());
+
+        var result = originalPosts
+                .stream()
+                .filter(og -> newViralIds.contains(og.getId()))
+                .peek(og -> og.setViral(true))
+                .collect(Collectors.toList());
+
+        postRepository.saveAll(result);
+        kieSession.dispose();
     }
 
     @Override
     public void checkForEvent(String username, int page) {
         User user = userService.findByUsername(username);
-        if(page == 5) {
+        if (page == 5) {
             cepKieSession.insert(new LongScrollingEvent(user.getProfile(), false));
             cepKieSession.fireAllRules();
         }
+    }
+
+    private void ultimamivniBekwardChaining() {
+
+        List<Location> locations = locationService.findAll();
+        KieSession kieSession = kieContainer.newKieSession("testSession");
+
+        locations.forEach(kieSession::insert);
+        kieSession.insert("go1");
+        kieSession.fireAllRules();
+        kieSession.dispose();
+        System.out.println("------------");
+
+
     }
 }

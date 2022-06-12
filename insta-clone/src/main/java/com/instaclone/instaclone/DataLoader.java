@@ -31,42 +31,48 @@ public class DataLoader implements CommandLineRunner {
 
         Location l1 = Location.builder()
                 .locationName("Novi Sad")
-                .state("Liman Drzava")
+                .name("Liman Drzava")
+                .parent("")
                 .latitude(0.)
                 .longitude(0.)
                 .build();
 
         Location l2 = Location.builder()
                 .locationName("Novi Sad")
-                .state("Liman Drzava")
+                .name("Liman Drzava")
+                .parent("")
                 .latitude(0.)
                 .longitude(0.)
                 .build();
 
         Location l3 = Location.builder()
                 .locationName("Novi Sad")
-                .state("Liman Drzava")
+                .name("Liman Drzava")
+                .parent("")
                 .latitude(0.)
                 .longitude(0.)
                 .build();
 
         Location postl1 = Location.builder()
                 .locationName("Kraljevica Marka 28b")
-                .state("Liman2 Drzava")
+                .name("Liman Drzava")
+                .parent("")
                 .latitude(0.)
                 .longitude(0.)
                 .build();
 
         Location postl2 = Location.builder()
                 .locationName("Vitezovi Salajke")
-                .state("Srbija")
+                .name("Liman Drzava")
+                .parent("")
                 .latitude(0.)
                 .longitude(0.)
                 .build();
 
         Location postl3 = Location.builder()
                 .locationName("Vjeternik")
-                .state("Republika Srpska")
+                .name("Liman Drzava")
+                .parent("")
                 .latitude(0.)
                 .longitude(0.)
                 .build();

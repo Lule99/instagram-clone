@@ -6,6 +6,8 @@ import com.instaclone.instaclone.model.Categorization;
 import com.instaclone.instaclone.model.Location;
 import com.instaclone.instaclone.model.Profile;
 import com.instaclone.instaclone.model.enums.CategorizationType;
+import com.instaclone.instaclone.service.LocationService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
@@ -15,6 +17,11 @@ import java.util.List;
 
 @Component
 public class RegistrationDtoToProfile extends Converter<RegistrationDto, Profile> {
+
+    @Autowired
+    LocationService locationService;
+
+
     @Override
     public Profile convert(RegistrationDto source) {
         Profile profile = getModelMapper().map(source, Profile.class);
@@ -24,15 +31,7 @@ public class RegistrationDtoToProfile extends Converter<RegistrationDto, Profile
         profile.setTimeCreated(LocalDateTime.now());
         profile.setViral(false);
 
-        Location location = Location.builder()
-                .state(source.getLocation().getState())
-                .region(source.getLocation().getRegion())
-                .locationName(source.getLocation().getLocationName())
-                .longitude(source.getLocation().getLongitude())
-                .latitude(source.getLocation().getLatitude())
-                .build();
-
-        location.setTimeCreated();
+        Location location = locationService.preprocessLocation(source.getLocation());
 
         Categorization postCategorization = Categorization.builder()
                 .lastUpdate(LocalDateTime.now())
