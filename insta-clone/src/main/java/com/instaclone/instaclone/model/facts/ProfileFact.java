@@ -25,8 +25,6 @@ public class ProfileFact {
 
     private Long id;
 
-    private Boolean active;
-
     private LocalDate birthday;
 
     private AgeCategory ageCategory;
@@ -59,7 +57,6 @@ public class ProfileFact {
     public ProfileFact(Profile p) {
 
         this.id = p.getId();
-        this.active = p.getActive();
         this.birthday = p.getBirthday();
         this.ageCategory = p.getAgeCategory();
         this.gender = p.getGender();
