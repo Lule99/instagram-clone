@@ -21,6 +21,6 @@ public class Categorization extends BaseEntity {
 
     private CategorizationType categorizationType;
 
-    @ElementCollection(targetClass = Double.class, fetch = FetchType.EAGER)
+    @ElementCollection(targetClass = Double.class)
     private List<Double> categories;
 }

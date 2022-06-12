@@ -87,6 +87,7 @@ public class ProfileServiceImpl extends JPAServiceImpl<Profile> implements Profi
     }
 
     @Override
+    @Transactional
     public List<ProfileInfoDto> getSuggestions(String username) {
 
         List<FinalSuggestion> finalSuggestions = new ArrayList<>();

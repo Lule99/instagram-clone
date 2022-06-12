@@ -5,6 +5,7 @@ import com.instaclone.instaclone.dto.auth.RegistrationDto;
 import com.instaclone.instaclone.model.Categorization;
 import com.instaclone.instaclone.model.Location;
 import com.instaclone.instaclone.model.Profile;
+import com.instaclone.instaclone.model.enums.CategorizationType;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
@@ -35,12 +36,14 @@ public class RegistrationDtoToProfile extends Converter<RegistrationDto, Profile
 
         Categorization postCategorization = Categorization.builder()
                 .lastUpdate(LocalDateTime.now())
+                .categorizationType(CategorizationType.POST)
                 .categories(List.of(1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.)).build();
 
         postCategorization.setTimeCreated();
 
         Categorization followCategorization = Categorization.builder()
                 .lastUpdate(LocalDateTime.now())
+                .categorizationType(CategorizationType.FOLLOW)
                 .categories(List.of(1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.,1.)).build();
         followCategorization.setTimeCreated();
 
