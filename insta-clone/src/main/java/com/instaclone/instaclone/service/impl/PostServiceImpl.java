@@ -256,7 +256,7 @@ public class PostServiceImpl extends JPAServiceImpl<Post> implements PostService
     }
 
     private Set<Post> calculateExplore(Profile profile) {
-        calculateViralPosts();
+//        calculateViralPosts();
 
         FinalCategorization finalCategorization = FinalCategorization
                 .builder()
@@ -368,15 +368,15 @@ public class PostServiceImpl extends JPAServiceImpl<Post> implements PostService
     }
 
     public void calculateViralPosts() {
-        KieSession kieSession = kieContainer.newKieSession("testSession");
-        List<Post> allPosts = postRepository.findAll();
-        List<Profile> allProfiles = userService
-                .findAll()
-                .stream()
-                .map(User::getProfile)
-                .collect(Collectors.toList());
-        allPosts.forEach(kieSession::insert);
-        allProfiles.forEach(kieSession::insert);
+//        KieSession kieSession = kieContainer.newKieSession("testSession");
+//        List<Post> allPosts = postRepository.findAll();
+//        List<Profile> allProfiles = userService
+//                .findAll()
+//                .stream()
+//                .map(User::getProfile)
+//                .collect(Collectors.toList());
+//        allPosts.forEach(kieSession::insert);
+//        allProfiles.forEach(kieSession::insert);
 
 //        QueryResults averageFollowers = kieSession.getQueryResults("getAverageFollowers");
 //        Double average = (Double) averageFollowers.toList().get(0).get("$avg");
@@ -404,7 +404,7 @@ public class PostServiceImpl extends JPAServiceImpl<Post> implements PostService
 //                .collect(Collectors.toSet());
 //        newVirals.forEach(post -> post.setViral(true));
 //        postRepository.saveAll(newVirals);
-        kieSession.dispose();
+//        kieSession.dispose();
     }
 
     @Override

@@ -7,6 +7,7 @@ import javax.persistence.ElementCollection;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Builder
@@ -23,4 +24,10 @@ public class Categorization extends BaseEntity {
 
     @ElementCollection(targetClass = Double.class)
     private List<Double> categories;
+
+    public Categorization(Categorization c) {
+        lastUpdate = c.lastUpdate;
+        categorizationType = c.categorizationType;
+        categories = new ArrayList<>(c.categories);
+    }
 }
