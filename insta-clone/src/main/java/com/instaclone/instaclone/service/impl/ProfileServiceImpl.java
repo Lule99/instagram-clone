@@ -2,15 +2,13 @@ package com.instaclone.instaclone.service.impl;
 
 import com.instaclone.instaclone.converter.user.ProfileToProfileDrools;
 import com.instaclone.instaclone.converter.user.UserToProfileInfoDtoConverter;
-import com.instaclone.instaclone.dto.user.ChangeFollowingStatusDto;
-import com.instaclone.instaclone.dto.user.ProfileInfoDto;
-import com.instaclone.instaclone.dto.user.UpdateUserDto;
-import com.instaclone.instaclone.dto.user.UserDto;
+import com.instaclone.instaclone.dto.user.*;
 import com.instaclone.instaclone.exception.NotFoundException;
 import com.instaclone.instaclone.model.Profile;
 import com.instaclone.instaclone.model.User;
 import com.instaclone.instaclone.model.facts.FinalSuggestion;
 import com.instaclone.instaclone.model.facts.FollowUnfollow;
+import com.instaclone.instaclone.model.facts.ForComplexRule;
 import com.instaclone.instaclone.model.facts.ProfileForCalculatingSuggestions;
 import com.instaclone.instaclone.repository.ProfileRepository;
 import com.instaclone.instaclone.repository.UserRepository;
@@ -88,9 +86,10 @@ public class ProfileServiceImpl extends JPAServiceImpl<Profile> implements Profi
 
     @Override
     @Transactional
-    public List<ProfileInfoDto> getSuggestions(String username) {
+    public Suggestions getSuggestions(String username) {
 
         List<FinalSuggestion> finalSuggestions = new ArrayList<>();
+        ForComplexRule fcr = new ForComplexRule();
 
         User user = userRepository.findByUsername(username);
         ProfileForCalculatingSuggestions profileForCalculatingSuggestions = new ProfileForCalculatingSuggestions(profileToProfileDrools.convert(user.getProfile()), false);
@@ -101,6 +100,7 @@ public class ProfileServiceImpl extends JPAServiceImpl<Profile> implements Profi
         kieSession.setGlobal("myLocation", user.getProfile().getLocation());
         kieSession.setGlobal("locationService", locationService);
         kieSession.setGlobal("finalSuggestions", finalSuggestions);
+        kieSession.setGlobal("forComplexRule", fcr);
         locationService.findAll().forEach(kieSession::insert);
         this.findAll().forEach(p -> kieSession.insert(profileToProfileDrools.convert(p)));
         kieSession.insert(profileForCalculatingSuggestions);
@@ -109,7 +109,9 @@ public class ProfileServiceImpl extends JPAServiceImpl<Profile> implements Profi
         kieSession.dispose();
 
         List<User> suggestions = finalSuggestions.stream().map(sugg -> userRepository.getById(sugg.getProfile().getUser())).collect(Collectors.toList());
-        return suggestions.stream().map(userToProfileInfoDtoConverter::convert).collect(Collectors.toList());
+        List<ProfileInfoDto> profiles = suggestions.stream().map(userToProfileInfoDtoConverter::convert).collect(Collectors.toList());
+
+        return new Suggestions(profiles, fcr);
     }
 
 

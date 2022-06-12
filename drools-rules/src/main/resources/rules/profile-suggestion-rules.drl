@@ -15,15 +15,27 @@ import java.util.Collections
 import java.util.stream.Collectors;
 import com.instaclone.instaclone.service.CategorizationService;
 import com.instaclone.instaclone.service.LocationService;
+import com.instaclone.instaclone.service.ProfileService;
 import com.instaclone.instaclone.model.facts.LocationCalculated;
 import com.instaclone.instaclone.model.facts.DistanceCalculated;
 import com.instaclone.instaclone.model.facts.enums.LocationCategory;
 import com.instaclone.instaclone.model.facts.FinalSuggestion;
+import com.instaclone.instaclone.model.facts.ForComplexRule;
 
 global CategorizationService categorizationService;
+global ProfileService profileService;
 global Location myLocation;
 global LocationService locationService;
 global List finalSuggestions;
+global ForComplexRule forComplexRule;
+
+function double calculateCoefs(Object profile, List categories) {
+    double coef = 0.;
+    for(Object cat: categories) {
+        coef += ((ProfileDrools) profile).getPostCategorization().getCategories().get(((Category)cat).ordinal());
+    }
+    return coef;
+}
 
 rule "My favorites categories - level 0"
     agenda-group "suggestions"
@@ -42,20 +54,13 @@ rule "Similar profiles rule - level 1"
     when
         $favoriteCategories: FavoriteCategories(processed == false, $categories: categories) and
         $profileForCalculating: ProfileForCalculatingSuggestions(processed == true, $profile: profile) and
-        $profiles: List() from collect( ProfileDrools(id != $profile.getId(),
+        $profileDrools: ProfileDrools(id != $profile.getId(),
                                         $otherProfile: this,
-                                        $profile.getFollowing() not contains $otherProfile.getId()) )
+                                        $profile.getFollowing() not contains $otherProfile.getId())
     then
-        for (Object profile : $profiles) {
-            double coef = 0.;
-            for(Category cat: $categories) {
-                coef += ((ProfileDrools) profile).getPostCategorization().getCategories().get(cat.ordinal());
-            }
-            ProfileSuggestion $profileSuggestion = new ProfileSuggestion((ProfileDrools) profile, coef, null);
-            insert($profileSuggestion);
-        }
-
-        modify($favoriteCategories){setProcessed(true)}
+            double coef = calculateCoefs((Object) $profileDrools, $categories);
+            ProfileSuggestion profileSuggestion = new ProfileSuggestion((ProfileDrools) $profileDrools, coef, null);
+            insert(profileSuggestion);
 end
 
 rule "Calculate distance - rule"
@@ -208,6 +213,37 @@ rule "Calculate age similarity = 3 - level 2"
         insert($fS);
         delete($profileSuggestion);
 
+end
+
+rule "Complex rule"
+    agenda-group "suggestions"
+    salience -10
+    when
+        accumulate($fS: FinalSuggestion($similarity: similarity),
+            $min: min($similarity),
+            $max: max($similarity),
+            $count: count($similarity),
+            $sum: sum($similarity),
+            $average: average($similarity),
+            $fSList: collectList($fS)
+        )
+    then
+        ForComplexRule $fcR = new ForComplexRule($fSList, $min, $max, $sum, $count, $average);
+        insert($fcR)
+
+end
+
+rule "Processing ForComplexRule"
+    agenda-group "suggestions"
+    when
+        $fcR: ForComplexRule()
+    then
+        forComplexRule.setFinalSuggestionList($fcR.getFinalSuggestionList());
+        forComplexRule.setAverage($fcR.getAverage());
+        forComplexRule.setCount($fcR.getCount());
+        forComplexRule.setMax($fcR.getMax());
+        forComplexRule.setMin($fcR.getMin());
+        forComplexRule.setSum($fcR.getSum());
 end
 
 rule "Sort suggestions"
