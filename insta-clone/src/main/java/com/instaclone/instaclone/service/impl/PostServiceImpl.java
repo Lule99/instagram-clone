@@ -249,7 +249,6 @@ public class PostServiceImpl extends JPAServiceImpl<Post> implements PostService
 
     private Set<Post> calculateExplore(Profile profile) {
 
-        ultimamivniBekwardChaining();
         calculateViralPosts();
 
         FinalCategorization finalCategorization = FinalCategorization
@@ -358,10 +357,21 @@ public class PostServiceImpl extends JPAServiceImpl<Post> implements PostService
         kieSession.fireAllRules();
         kieSession.dispose();
 
+        Set<String> locationPairs = crossCheckLocation();
+
         Set<Long> idsOfInterest = profiles.stream()
                 .filter(ProfileOfInterest::isOfInterest)
                 .map(profileOfInterest -> profileOfInterest.getProfile().getId())
                 .collect(Collectors.toSet());
+
+        //svi profili koji dele istu lokaciju/ mesto/ okrug...
+        Set<Long> additionalInterest = profiles.stream()
+                .filter(p -> ! p.isOfInterest() &&
+                        locationPairs.contains(p.getProfile().getLocation().getName()+"|"+profile.getLocation().getName()))
+                .map(profileOfInterest -> profileOfInterest.getProfile().getId())
+                .collect(Collectors.toSet());
+
+        idsOfInterest.addAll(additionalInterest);
 
         return nonViralProfiles
                 .stream()
@@ -455,17 +465,20 @@ public class PostServiceImpl extends JPAServiceImpl<Post> implements PostService
         }
     }
 
-    private void ultimamivniBekwardChaining() {
+    private Set<String> crossCheckLocation() {
+
+        Set<String> locationPairs = new HashSet<>();
 
         List<Location> locations = locationService.findAll();
         KieSession kieSession = kieContainer.newKieSession("testSession");
         kieSession.getAgenda().getAgendaGroup("backward").setFocus();
         locations.forEach(kieSession::insert);
-        kieSession.insert("go1");
+        kieSession.setGlobal("locationPairs", locationPairs);
+        kieSession.insert("runCrossCheck");
         kieSession.fireAllRules();
         kieSession.dispose();
         System.out.println("------------");
-
+        return locationPairs;
 
     }
 }

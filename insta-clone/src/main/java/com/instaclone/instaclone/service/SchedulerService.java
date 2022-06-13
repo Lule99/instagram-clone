@@ -4,6 +4,5 @@ public interface SchedulerService {
 
     void calculateViralPosts();
 
-    void CalculateViralProfiles();
     
 }

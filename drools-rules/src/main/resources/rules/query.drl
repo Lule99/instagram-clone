@@ -8,6 +8,10 @@ import java.util.List
 import java.util.Set
 import java.time.LocalDateTime
 import java.lang.Double
+import  java.lang.String
+
+
+global Set<String> locationPairs
 
 
 query lastNDaysMoreThanKReactions(LocalDateTime thresholdTime,
@@ -39,14 +43,6 @@ query viralByFollowNumOfInteractionsRelation(LocalDateTime thresholdTime)
     )
 end;
 
-
-// da li se x prati y preko nekoga...
-//query areConnected(Profile x, Profile y)
-//    Profile(x, following contains y;)
-//    or
-//    (Profile(z, following contains y;) and areConnected(x, z;))
-//end;
-
 query getAverageFollowers()
 
     $avg: Number() from accumulate(
@@ -67,13 +63,14 @@ query backward( String sublocation, String parentLocation )
   ( Location( z, parentLocation; ) and backward( sublocation, z; ) )
 end
 
-rule "go1"
+
+rule "runCrossCheck"
     agenda-group "backward"
 when
-    String( this == "go1" )
-    backward("subotica", "serbia"; )
+    String( this == "runCrossCheck" )
+    backward(child, parent; )
 then
-    System.out.println( "subotica je u srbiji" );
+    locationPairs.add(child + "|"+ parent);
 end
 
 
