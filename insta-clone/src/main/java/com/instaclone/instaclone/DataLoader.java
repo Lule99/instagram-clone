@@ -31,7 +31,7 @@ public class DataLoader implements CommandLineRunner {
 
         Location l1 = Location.builder()
                 .locationName("Novi Sad")
-                .name("Liman Drzava")
+                .name("Serbia")
                 .parent("")
                 .latitude(0.)
                 .longitude(0.)
@@ -39,7 +39,7 @@ public class DataLoader implements CommandLineRunner {
 
         Location l2 = Location.builder()
                 .locationName("Novi Sad")
-                .name("Liman Drzava")
+                .name("Serbia")
                 .parent("")
                 .latitude(0.)
                 .longitude(0.)
@@ -47,7 +47,7 @@ public class DataLoader implements CommandLineRunner {
 
         Location l3 = Location.builder()
                 .locationName("Novi Sad")
-                .name("Liman Drzava")
+                .name("Serbia")
                 .parent("")
                 .latitude(0.)
                 .longitude(0.)
@@ -55,7 +55,7 @@ public class DataLoader implements CommandLineRunner {
 
         Location l4 = Location.builder()
                 .locationName("Novi Sad")
-                .name("Liman Drzava")
+                .name("Serbia")
                 .parent("")
                 .latitude(0.)
                 .longitude(0.)
@@ -63,7 +63,7 @@ public class DataLoader implements CommandLineRunner {
 
         Location l5 = Location.builder()
                 .locationName("Novi Sad")
-                .name("Liman Drzava")
+                .name("Serbia")
                 .parent("")
                 .latitude(0.)
                 .longitude(0.)
@@ -71,7 +71,7 @@ public class DataLoader implements CommandLineRunner {
 
         Location l6 = Location.builder()
                 .locationName("Novi Sad")
-                .name("Liman Drzava")
+                .name("Serbia")
                 .parent("")
                 .latitude(0.)
                 .longitude(0.)
@@ -79,7 +79,7 @@ public class DataLoader implements CommandLineRunner {
 
         Location l7 = Location.builder()
                 .locationName("Novi Sad")
-                .name("Liman Drzava")
+                .name("Serbia")
                 .parent("")
                 .latitude(0.)
                 .longitude(0.)
@@ -87,7 +87,23 @@ public class DataLoader implements CommandLineRunner {
 
         Location l8 = Location.builder()
                 .locationName("Novi Sad")
-                .name("Liman Drzava")
+                .name("Serbia")
+                .parent("")
+                .latitude(0.)
+                .longitude(0.)
+                .build();
+
+        Location l9 = Location.builder()
+                .locationName("Novi Sad")
+                .name("Serbia")
+                .parent("")
+                .latitude(0.)
+                .longitude(0.)
+                .build();
+
+        Location l10 = Location.builder()
+                .locationName("Novi Sad")
+                .name("Serbia")
                 .parent("")
                 .latitude(0.)
                 .longitude(0.)
@@ -95,7 +111,7 @@ public class DataLoader implements CommandLineRunner {
 
         Location postl1 = Location.builder()
                 .locationName("Kraljevica Marka 28b")
-                .name("Liman Drzava")
+                .name("Serbia")
                 .parent("")
                 .latitude(0.)
                 .longitude(0.)
@@ -103,7 +119,7 @@ public class DataLoader implements CommandLineRunner {
 
         Location postl2 = Location.builder()
                 .locationName("Vitezovi Salajke")
-                .name("Liman Drzava")
+                .name("Serbia")
                 .parent("")
                 .latitude(0.)
                 .longitude(0.)
@@ -111,7 +127,7 @@ public class DataLoader implements CommandLineRunner {
 
         Location postl3 = Location.builder()
                 .locationName("Vjeternik")
-                .name("Liman Drzava")
+                .name("Serbia")
                 .parent("")
                 .latitude(0.)
                 .longitude(0.)
@@ -125,11 +141,13 @@ public class DataLoader implements CommandLineRunner {
         l6.setTimeCreated();
         l7.setTimeCreated();
         l8.setTimeCreated();
+        l9.setTimeCreated();
+        l10.setTimeCreated();
 
         postl1.setTimeCreated();
         postl2.setTimeCreated();
         postl3.setTimeCreated();
-        locationRepository.saveAll(List.of(l1, l2, l3, l4, l5, l6, l7, l8, postl1, postl2, postl3));
+        locationRepository.saveAll(List.of(l1, l2, l3, l4, l5, l6, l7, l8, l9, l10, postl1, postl2, postl3));
 
 
         //---------------
@@ -181,8 +199,7 @@ public class DataLoader implements CommandLineRunner {
         Categorization fc4 = Categorization.builder()
                 .lastUpdate(LocalDateTime.now())
                 .categorizationType(CategorizationType.FOLLOW)
-                .categories(List.of(2.0 / 16.0, 8.0 / 16.0, 21.0 / 16.0, 29.0 / 16.0, 41.0 / 16.0, 32.0 / 16.0, 18.0 / 16.0,
-                        10.0 / 16.0, 14.0 / 16.0, 17.0 / 16, 17.0 / 16.0, 19.0 / 16.0, 9.0 / 16.0, 9.0 / 16.0, 6.0 / 16.0, 4.0 / 16.0)) //sum je 256/16 ova dva su isti
+                .categories(List.of(0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 14.5, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1)) //sum je 256/16 ova dva su isti
                 .build();
 
         Categorization pc5 = Categorization.builder()
@@ -194,8 +211,7 @@ public class DataLoader implements CommandLineRunner {
         Categorization fc5 = Categorization.builder()
                 .lastUpdate(LocalDateTime.now())
                 .categorizationType(CategorizationType.FOLLOW)
-                .categories(List.of(2.0 / 16.0, 8.0 / 16.0, 21.0 / 16.0, 29.0 / 16.0, 41.0 / 16.0, 32.0 / 16.0, 18.0 / 16.0,
-                        10.0 / 16.0, 14.0 / 16.0, 17.0 / 16, 17.0 / 16.0, 19.0 / 16.0, 9.0 / 16.0, 9.0 / 16.0, 6.0 / 16.0, 4.0 / 16.0)) //sum je 256/16 ova dva su isti
+                .categories(List.of(1.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 13.5, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1)) //sum je 256/16 ova dva su isti
                 .build();
 
         Categorization pc6 = Categorization.builder()
@@ -207,8 +223,7 @@ public class DataLoader implements CommandLineRunner {
         Categorization fc6 = Categorization.builder()
                 .lastUpdate(LocalDateTime.now())
                 .categorizationType(CategorizationType.FOLLOW)
-                .categories(List.of(2.0 / 16.0, 8.0 / 16.0, 21.0 / 16.0, 29.0 / 16.0, 41.0 / 16.0, 32.0 / 16.0, 18.0 / 16.0,
-                        10.0 / 16.0, 14.0 / 16.0, 17.0 / 16, 17.0 / 16.0, 19.0 / 16.0, 9.0 / 16.0, 9.0 / 16.0, 6.0 / 16.0, 4.0 / 16.0)) //sum je 256/16 ova dva su isti
+                .categories(List.of(0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 14.5, 0.1)) //sum je 256/16 ova dva su isti
                 .build();
 
         Categorization pc7 = Categorization.builder()
@@ -220,8 +235,7 @@ public class DataLoader implements CommandLineRunner {
         Categorization fc7 = Categorization.builder()
                 .lastUpdate(LocalDateTime.now())
                 .categorizationType(CategorizationType.FOLLOW)
-                .categories(List.of(2.0 / 16.0, 8.0 / 16.0, 21.0 / 16.0, 29.0 / 16.0, 41.0 / 16.0, 32.0 / 16.0, 18.0 / 16.0,
-                        10.0 / 16.0, 14.0 / 16.0, 17.0 / 16, 17.0 / 16.0, 19.0 / 16.0, 9.0 / 16.0, 9.0 / 16.0, 6.0 / 16.0, 4.0 / 16.0)) //sum je 256/16 ova dva su isti
+                .categories(List.of(13.5, 0.1, 0.1, 0.1, 0.1, 0.1, 1.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1)) //sum je 256/16 ova dva su isti
                 .build();
 
         Categorization pc8 = Categorization.builder()
@@ -233,8 +247,31 @@ public class DataLoader implements CommandLineRunner {
         Categorization fc8 = Categorization.builder()
                 .lastUpdate(LocalDateTime.now())
                 .categorizationType(CategorizationType.FOLLOW)
-                .categories(List.of(2.0 / 16.0, 8.0 / 16.0, 21.0 / 16.0, 29.0 / 16.0, 41.0 / 16.0, 32.0 / 16.0, 18.0 / 16.0,
-                        10.0 / 16.0, 14.0 / 16.0, 17.0 / 16, 17.0 / 16.0, 19.0 / 16.0, 9.0 / 16.0, 9.0 / 16.0, 6.0 / 16.0, 4.0 / 16.0)) //sum je 256/16 ova dva su isti
+                .categories(List.of(0.1, 0.1, 0.1, 14., 0.2, 0.2, 0.2, 0.2, 0.2, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1)) //sum je 256/16 ova dva su isti
+                .build();
+
+        Categorization pc9 = Categorization.builder()
+                .lastUpdate(LocalDateTime.now())
+                .categorizationType(CategorizationType.POST)
+                .categories(List.of(0.1, 0.1, 0.1, 0.2, 14., 0.2, 0.2, 0.2, 0.2, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1)) //sum je 256/16 ova dva su isti
+                .build();
+
+        Categorization fc9 = Categorization.builder()
+                .lastUpdate(LocalDateTime.now())
+                .categorizationType(CategorizationType.FOLLOW)
+                .categories(List.of(0.1, 0.1, 0.1, 0.2, 14., 0.2, 0.2, 0.2, 0.2, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1)) //sum je 256/16 ova dva su isti
+                .build();
+
+        Categorization pc10 = Categorization.builder()
+                .lastUpdate(LocalDateTime.now())
+                .categorizationType(CategorizationType.POST)
+                .categories(List.of(0.1, 0.1, 14., 0.2, 0.1, 0.2, 0.2, 0.2, 0.2, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1)) //sum je 256/16 ova dva su isti
+                .build();
+
+        Categorization fc10 = Categorization.builder()
+                .lastUpdate(LocalDateTime.now())
+                .categorizationType(CategorizationType.FOLLOW)
+                .categories(List.of(0.1, 0.1, 14., 0.2, 0.1, 0.2, 0.2, 0.2, 0.2, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1)) //sum je 256/16 ova dva su isti
                 .build();
 
         pc1.setTimeCreated();
@@ -245,6 +282,8 @@ public class DataLoader implements CommandLineRunner {
         pc6.setTimeCreated();
         pc7.setTimeCreated();
         pc8.setTimeCreated();
+        pc9.setTimeCreated();
+        pc10.setTimeCreated();
 
         fc1.setTimeCreated();
         fc2.setTimeCreated();
@@ -254,8 +293,11 @@ public class DataLoader implements CommandLineRunner {
         fc6.setTimeCreated();
         fc7.setTimeCreated();
         fc8.setTimeCreated();
+        fc9.setTimeCreated();
+        fc10.setTimeCreated();
 
-        categorizationRepository.saveAll(List.of(pc1, fc1, pc2, fc2, pc3, fc3, pc4, fc4, pc5, fc5, pc6, fc6, pc7, fc7, pc8, fc8));
+        categorizationRepository.saveAll(List.of(pc1, fc1, pc2, fc2, pc3, fc3, pc4, fc4, pc5, fc5, pc6, fc6, pc7, fc7,
+                pc8, fc8, pc9, fc9, pc10, fc10));
 
 
         //---------------
@@ -317,6 +359,20 @@ public class DataLoader implements CommandLineRunner {
                 .role(Role.REGULAR_USER)
                 .build();
 
+        User u9 = User.builder()
+                .username("em_rata")
+                .email("em_rata@email.com")
+                .password(encoder.encode("123"))
+                .role(Role.REGULAR_USER)
+                .build();
+
+        User u10 = User.builder()
+                .username("lule")
+                .email("lule@email.com")
+                .password(encoder.encode("123"))
+                .role(Role.REGULAR_USER)
+                .build();
+
         u1.setTimeCreated(LocalDateTime.now());
         u2.setTimeCreated(LocalDateTime.now());
         u3.setTimeCreated(LocalDateTime.now());
@@ -325,6 +381,8 @@ public class DataLoader implements CommandLineRunner {
         u6.setTimeCreated();
         u7.setTimeCreated();
         u8.setTimeCreated();
+        u9.setTimeCreated();
+        u10.setTimeCreated();
 
 
         Profile profile1 = Profile.builder()
@@ -465,21 +523,62 @@ public class DataLoader implements CommandLineRunner {
                 .build();
         profile8.setTimeCreated(LocalDateTime.now());
 
+        Profile profile9 = Profile.builder()
+                .user(u9)
+                .bio("Emily ;)")
+                .name("Emily")
+                .profilePicture("/static/users/9.jpg")
+                .followers(new HashSet<>())
+                .following(new HashSet<>())
+                .viral(false)
+                .birthday(LocalDate.of(1990, 9, 21))
+                .ageCategory(AgeCategory.ADULT)
+                .gender(Gender.FEMALE)
+                .location(l9)
+                .followCategorization(fc9)
+                .postCategorization(pc9)
+                .build();
+        profile9.setTimeCreated(LocalDateTime.now());
+
+        Profile profile10 = Profile.builder()
+                .user(u10)
+                .bio("Lule ovim putem apeluje na dovru volju prilikom ocenjivanja :D")
+                .name("Njegos me zlostavlja")
+                .profilePicture("/static/users/10.jpg")
+                .followers(new HashSet<>())
+                .following(new HashSet<>())
+                .viral(false)
+                .birthday(LocalDate.of(1999, 9, 22))
+                .ageCategory(AgeCategory.ADULT)
+                .gender(Gender.MALE)
+                .location(l10)
+                .followCategorization(fc10)
+                .postCategorization(pc10)
+                .build();
+        profile10.setTimeCreated(LocalDateTime.now());
 
         //keca prate 2 i3, on prati samo 2
         profile1.getFollowers().addAll(List.of(profile2, profile3));
-        profile1.getFollowing().add(profile2);
+        profile1.getFollowing().addAll(List.of(profile2, profile3, profile10));
 
         //prati keca, kec njega
         profile2.getFollowers().addAll(List.of(profile1));
-        profile2.getFollowing().add(profile1);
+        profile2.getFollowing().addAll(List.of(profile1, profile10));
 
-        //prati keca, njega niko
+        //prati ga kec
         profile3.getFollowers().addAll(List.of(profile1));
+        profile3.getFollowing().addAll(List.of(profile1, profile10));
+
+        profile4.getFollowing().addAll(List.of(profile10));
+        profile5.getFollowing().addAll(List.of(profile10));
+        profile6.getFollowing().addAll(List.of(profile10));
+        profile9.getFollowing().addAll(List.of(profile10));
+
+        profile10.getFollowers().addAll(List.of(profile1, profile2, profile3, profile4, profile5, profile6, profile9));
 
 
-        userRepository.saveAll(List.of(u1, u2, u3, u4, u5, u6, u7, u8));
-        profileRepository.saveAll(List.of(profile1, profile2, profile3, profile4, profile5, profile6, profile7, profile8));
+        userRepository.saveAll(List.of(u1, u2, u3, u4, u5, u6, u7, u8, u9, u10));
+        profileRepository.saveAll(List.of(profile1, profile2, profile3, profile4, profile5, profile6, profile7, profile8, profile9, profile10));
 
         u1 = userRepository.findByUsername(u1.getUsername());
         u2 = userRepository.findByUsername(u2.getUsername());
@@ -489,6 +588,8 @@ public class DataLoader implements CommandLineRunner {
         u6 = userRepository.findByUsername(u6.getUsername());
         u7 = userRepository.findByUsername(u7.getUsername());
         u8 = userRepository.findByUsername(u8.getUsername());
+        u9 = userRepository.findByUsername(u9.getUsername());
+        u10 = userRepository.findByUsername(u10.getUsername());
 
 
         u1.setProfile(profile1);
@@ -499,7 +600,9 @@ public class DataLoader implements CommandLineRunner {
         u6.setProfile(profile6);
         u7.setProfile(profile7);
         u8.setProfile(profile8);
-        userRepository.saveAll(List.of(u1, u2, u3, u4, u5, u6, u7, u8));
+        u9.setProfile(profile9);
+        u10.setProfile(profile10);
+        userRepository.saveAll(List.of(u1, u2, u3, u4, u5, u6, u7, u8, u9, u10));
 
 
         //-------------------------------------------------------------
@@ -855,7 +958,144 @@ public class DataLoader implements CommandLineRunner {
                 .build();
         p36.setTimeCreated(LocalDateTime.now());
 
+        Post p37 = Post.builder()
+                .publisher(profile9)
+                .picture("/static/posts/37.jpg")
+                .categories(List.of(Category.FASHION))
+                .text("Da ima i malo zenskih osoba na ig :D")
+                .reactions(List.of())
+                .build();
+        p37.setTimeCreated(LocalDateTime.now());
 
-        postRepository.saveAll(List.of(p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16, p17, p18, p19, p20, p21, p22, p23, p24, p25, p26, p27, p28, p29, p30, p31, p32, p33, p34, p35, p36));
+        Post p38 = Post.builder()
+                .publisher(profile9)
+                .picture("/static/posts/38.jpg")
+                .categories(List.of(Category.FASHION))
+                .text("Nije sve mali beli ker")
+                .reactions(List.of())
+                .build();
+        p38.setTimeCreated(LocalDateTime.now());
+
+        Post p39 = Post.builder()
+                .publisher(profile10)
+                .picture("/static/posts/39.jpg")
+                .categories(List.of(Category.TRAVEL))
+                .text("Afrika ;)")
+                .reactions(List.of())
+                .build();
+        p39.setTimeCreated(LocalDateTime.now());
+
+        Post p40 = Post.builder()
+                .publisher(profile10)
+                .picture("/static/posts/40.jpg")
+                .categories(List.of(Category.TRAVEL, Category.HISTORY_RELIGION))
+                .text("Tutankamon")
+                .reactions(List.of())
+                .build();
+        p40.setTimeCreated(LocalDateTime.now());
+
+        Post p41 = Post.builder()
+                .publisher(profile10)
+                .picture("/static/posts/41.jpg")
+                .categories(List.of(Category.TRAVEL))
+                .text("Bolje na slici nego uzivo")
+                .reactions(List.of())
+                .build();
+        p41.setTimeCreated(LocalDateTime.now());
+
+        Post p42 = Post.builder()
+                .publisher(profile10)
+                .picture("/static/posts/42.jpg")
+                .categories(List.of(Category.TRAVEL, Category.OTHER))
+                .text("Da je riba valjala, vuk bi dunavom vladao")
+                .reactions(List.of())
+                .build();
+        p42.setTimeCreated(LocalDateTime.now());
+
+        Post p43 = Post.builder()
+                .publisher(profile9)
+                .picture("/static/posts/43.jpg")
+                .categories(List.of(Category.FASHION))
+                .text("ratatata")
+                .reactions(List.of())
+                .build();
+        p43.setTimeCreated(LocalDateTime.now());
+
+        Post p44 = Post.builder()
+                .publisher(profile9)
+                .picture("/static/posts/44.jpg")
+                .categories(List.of(Category.FASHION, Category.URBAN_LIFE, Category.CLUBBING))
+                .text("slomo :D")
+                .reactions(List.of())
+                .build();
+        p44.setTimeCreated(LocalDateTime.now());
+
+        Post p45 = Post.builder()
+                .publisher(profile9)
+                .picture("/static/posts/45.jpg")
+                .categories(List.of(Category.FASHION, Category.URBAN_LIFE, Category.CLUBBING))
+                .text("Komprosta za bolju cirkulaciju")
+                .reactions(List.of())
+                .build();
+        p45.setTimeCreated(LocalDateTime.now());
+//-----
+        Post p46 = Post.builder()
+                .publisher(profile10)
+                .picture("/static/posts/46.jpg")
+                .categories(List.of(Category.TRAVEL, Category.NATURE))
+                .text("Pusku pa u frusku")
+                .reactions(List.of())
+                .build();
+        p46.setTimeCreated(LocalDateTime.now());
+
+        Post p47 = Post.builder()
+                .publisher(profile10)
+                .picture("/static/posts/47.jpg")
+                .categories(List.of(Category.TRAVEL, Category.NATURE))
+                .text("Majdan")
+                .reactions(List.of())
+                .build();
+        p47.setTimeCreated(LocalDateTime.now());
+
+        Post p48 = Post.builder()
+                .publisher(profile10)
+                .picture("/static/posts/48.jpg")
+                .categories(List.of(Category.TRAVEL, Category.SELFIE))
+                .text("Jahta")
+                .reactions(List.of())
+                .build();
+        p48.setTimeCreated(LocalDateTime.now());
+
+        Post p49 = Post.builder()
+                .publisher(profile10)
+                .picture("/static/posts/49.jpg")
+                .categories(List.of(Category.TRAVEL, Category.URBAN_LIFE))
+                .text("motivacioni govor here: _____")
+                .reactions(List.of())
+                .build();
+        p49.setTimeCreated(LocalDateTime.now());
+
+        Post p50 = Post.builder()
+                .publisher(profile10)
+                .picture("/static/posts/50.jpg")
+                .categories(List.of(Category.TRAVEL, Category.URBAN_LIFE, Category.SELFIE))
+                .text("U belgiji vise nema belaca")
+                .reactions(List.of())
+                .build();
+        p50.setTimeCreated(LocalDateTime.now());
+
+        Post p51 = Post.builder()
+                .publisher(profile10)
+                .picture("/static/posts/51.jpg")
+                .categories(List.of(Category.TRAVEL, Category.URBAN_LIFE))
+                .text("Neki kao duzi opis da eto postoji u svim ovim postovima.....")
+                .reactions(List.of())
+                .build();
+        p51.setTimeCreated(LocalDateTime.now());
+
+
+        postRepository.saveAll(List.of(p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16, p17, p18,
+                p19, p20, p21, p22, p23, p24, p25, p26, p27, p28, p29, p30, p31, p32, p33, p34, p35, p36, p37, p38, p39,
+                p40, p41, p42, p43, p44, p45, p46, p47, p48, p49, p50, p51));
     }
 }
