@@ -31,15 +31,6 @@ public class SchedulerServiceImpl implements SchedulerService {
         addNewViralPosts();
     }
 
-    @Override
-    public void CalculateViralProfiles() {
-        List<Profile> viral = userService.getProfilesByViral(true);
-        List<Profile> nonviral = userService.getProfilesByViral(false);
-
-        //pravila.....
-    }
-
-
     private void removeOldViralPosts() {
         LocalDateTime weekBefore = LocalDateTime.now().minus(7, ChronoUnit.DAYS);
         List<Post> viralsToDelete = postService.getViralPostsBefore(weekBefore);
