@@ -2,9 +2,11 @@ package rules;
 dialect  "mvel"
 import com.instaclone.instaclone.model.facts.ViralPost
 import com.instaclone.instaclone.model.facts.TopCategories
+import com.instaclone.instaclone.model.facts.ReduceOldVirals
 import java.util.List
 import static java.lang.Math.abs;
 
+global ReduceOldVirals reduceOldVirals
 
 
 rule "high sentiment"
@@ -93,5 +95,26 @@ rule "reactions to followers ratio"
     modify($post){setHighSentiment(true)}
 end
 
+
+rule "ReduceOldViralPosts"
+    agenda-group "viral-posts"
+    when
+        accumulate($fS: ViralPost(
+                                    $numOfReactions : numOfReactions,
+                                    $numOfShares : numOfShares,
+                                    highSentiment == true,
+                                    daysFromPublishing > 5,
+                                    theChosenOne == true),
+            $averageReactions: average($numOfReactions),
+            $averageShares: average($numOfShares),
+            $maxReactions: max($numOfReactions),
+            $ViralsList: collectList($fS)
+        )
+    then
+        reduceOldVirals.setViralPosts($ViralsList);
+        reduceOldVirals.setAvgShares($averageShares);
+        reduceOldVirals.setAvgReactions($averageReactions);
+        reduceOldVirals.setMaxReactions($maxReactions);
+end
 
 

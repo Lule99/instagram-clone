@@ -3,7 +3,7 @@ dialect  "mvel"
 
 import com.instaclone.instaclone.model.facts.PostFact
 import com.instaclone.instaclone.model.facts.ProfileFact
-import com.instaclone.instaclone.model.facts.MyLocation
+import com.instaclone.instaclone.model.Location
 import java.util.List
 import java.util.Set
 import java.time.LocalDateTime
@@ -61,17 +61,17 @@ query getAverageFollowers()
 
 end;
 
-query backward( String x, String y )
-  MyLocation( x, y; )
+query backward( String sublocation, String parentLocation )
+  Location( sublocation, parentLocation; )
   or
-  ( MyLocation( z, y; ) and backward( x, z; ) )
+  ( Location( z, parentLocation; ) and backward( sublocation, z; ) )
 end
 
 rule "go1"
     agenda-group "backward"
 when
     String( this == "go1" )
-    backward("subotica", "srbija"; )
+    backward("subotica", "serbia"; )
 then
     System.out.println( "subotica je u srbiji" );
 end

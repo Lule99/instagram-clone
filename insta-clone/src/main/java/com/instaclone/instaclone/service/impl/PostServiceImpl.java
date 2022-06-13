@@ -261,9 +261,10 @@ public class PostServiceImpl extends JPAServiceImpl<Post> implements PostService
                 profile.getFollowCategorization().getLastUpdate(),
                 profile.getPostCategorization().getLastUpdate());
 
+
         KieSession kieSession = kieContainer.newKieSession("testSession");
-        kieSession.setGlobal("finalCategorization", finalCategorization);
         kieSession.getAgenda().getAgendaGroup("explore").setFocus();
+        kieSession.setGlobal("finalCategorization", finalCategorization);
         kieSession.insert(new ProfileFact(profile));
         kieSession.insert(tdc);
         kieSession.fireAllRules();
@@ -294,16 +295,42 @@ public class PostServiceImpl extends JPAServiceImpl<Post> implements PostService
                         LocalDateTime.now().minus(7, ChronoUnit.DAYS));
         List<ViralPost> virals = viralPosts.stream().map(ViralPost::new).collect(Collectors.toList());
 
+        ReduceOldVirals reduceOldVirals = new ReduceOldVirals();
+
         KieSession kieSession = kieContainer.newKieSession("testSession");
         kieSession.getAgenda().getAgendaGroup("viral-posts").setFocus();
+        kieSession.setGlobal("reduceOldVirals", reduceOldVirals);
         virals.forEach(kieSession::insert);
         kieSession.insert(topCategories);
         kieSession.fireAllRules();
         kieSession.dispose();
 
+        Set<Long> idsToRemove = new HashSet<>();
+
+        if(! reduceOldVirals.isEmpty()){
+            Double max = reduceOldVirals.getMaxReactions();
+            ViralPost maxViralPost = reduceOldVirals
+                    .getViralPosts()
+                    .stream()
+                    .filter(vp -> vp.getNumOfReactions() == max)
+                    .findFirst()
+                    .orElse(null);
+            if(maxViralPost != null) {
+                double treshold = 0.5 * maxViralPost.getNumOfReactions() + 0.5 * maxViralPost.getNumOfShares();
+                idsToRemove = reduceOldVirals
+                        .getViralPosts()
+                        .stream()
+                        .filter(vp -> (vp.getNumOfShares()+vp.getNumOfReactions()) < treshold)
+                        .map(ViralPost::getPostId)
+                        .collect(Collectors.toSet());
+            }
+        }
+
+        Set<Long> finalIdsToRemove = idsToRemove;
         Set<Long> viralIds = virals.stream()
                 .filter(ViralPost::isTheChosenOne)
                 .map(ViralPost::getPostId)
+                .filter(id -> ! finalIdsToRemove.contains(id))
                 .collect(Collectors.toSet());
 
         return viralPosts
