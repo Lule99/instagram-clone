@@ -542,7 +542,7 @@ public class DataLoader implements CommandLineRunner {
 
         Profile profile10 = Profile.builder()
                 .user(u10)
-                .bio("Lule ovim putem apeluje na dovru volju prilikom ocenjivanja :D")
+                .bio("Lule ovim putem apeluje na dobru volju prilikom ocenjivanja :D")
                 .name("Njegos me zlostavlja")
                 .profilePicture("/static/users/10.jpg")
                 .followers(new HashSet<>())
