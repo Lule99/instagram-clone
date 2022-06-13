@@ -1,0 +1,164 @@
+package rules;
+
+dialect "mvel"
+
+import com.instaclone.instaclone.model.facts.FinalCategorization
+import com.instaclone.instaclone.model.facts.ProfileInFocus
+import com.instaclone.instaclone.model.facts.ProfileOfInterest
+import com.instaclone.instaclone.model.facts.TopCategories
+import com.instaclone.instaclone.model.facts.ProfileFact
+import java.time.LocalDateTime;
+import com.instaclone.instaclone.model.facts.TimeDifferenceConstantCalculation
+import java.util.List;
+import java.lang.Double
+import java.lang.Integer
+import static java.lang.Math.abs;
+
+
+rule "boost profiles that are not followed"
+    agenda-group "profilesOfInterest"
+    salience 100
+    when
+    $focus: ProfileInFocus($main:profile) and
+    $poi: ProfileOfInterest(
+            $profile:profile,
+            $profile.id != $main.id,
+            ofInterest==false,
+            $profile.getFollowersIds() not contains $main.id)       //svi koji me ne prate dobijaju bonus
+    then
+    $poi.setSimilarity($poi.getSimilarity() + 0.2);
+    System.out.println("USAO U 1");
+
+end
+
+rule "boost profiles that are new"
+    agenda-group "profilesOfInterest"
+    salience 90
+    when
+    $focus: ProfileInFocus($main:profile) and                   //svi novi dobijaju bonus
+    $p: ProfileOfInterest(
+            $profile: profile,
+            $profile.id != $main.id,
+            ofInterest==false)
+    then
+        LocalDateTime timeCreated = $profile.getTimeCreated();
+        TimeDifferenceConstantCalculation tdc = new TimeDifferenceConstantCalculation(timeCreated, LocalDateTime.now());
+        $p.setSimilarity($p.getSimilarity() + 0.3/(tdc.getDayDifference()+1));
+        System.out.println("USAO U 2");
+
+end
+
+rule "boost profiles that are strongly simmilar to my interest"
+    agenda-group "profilesOfInterest"
+    salience 80
+    when
+        $fc : FinalCategorization() and
+        $focus: ProfileInFocus($main:profile) and
+        $p: ProfileOfInterest(
+                $profile: profile,
+                $profile.id != $main.id,
+                ofInterest==false,
+                totalDiff < 5)
+    then
+        $p.setSimilarity($p.getSimilarity() + 0.5);
+        System.out.println("USAO U 3");
+end
+
+rule "boost profiles that are somewhat simmilar to my interest"
+    agenda-group "profilesOfInterest"
+    salience 80
+    when
+        $fc : FinalCategorization() and
+        $focus: ProfileInFocus($main:profile) and
+        $p: ProfileOfInterest(
+                $profile: profile,
+                $profile.id != $main.id,
+                ofInterest==false,
+                totalDiff > 5,
+                totalDiff < 10)
+    then
+        $p.setSimilarity($p.getSimilarity() + 0.3);
+        System.out.println("USAO U 4");
+
+end
+
+rule "boost profiles that are weakly simmilar to my interest"
+    agenda-group "profilesOfInterest"
+    salience 80
+    when
+        $fc : FinalCategorization() and
+        $focus: ProfileInFocus($main:profile) and
+        $p: ProfileOfInterest(
+            $profile: profile,
+            $profile.id != $main.id,
+            ofInterest==false,
+            totalDiff > 10,
+            totalDiff < 15)
+    then
+        $p.setSimilarity($p.getSimilarity() + 0.1);
+        System.out.println("USAO U 5");
+
+end
+
+rule "add similarity"
+agenda-group "profilesOfInterest"
+    salience 70
+    when
+        $fc : FinalCategorization() and
+        $focus: ProfileInFocus($main:profile) and
+        $p: ProfileOfInterest(
+            $profile: profile,
+            $profile.id != $main.id,
+            ofInterest==false)
+        $difference: Double() from accumulate(
+         Double($catFC: this) from $fc.getCategorization(),
+         init(Integer i = 0; Integer count = 0;),
+         action(
+            count += Math.abs($catFC-$p.getProfile().getFollowCategorization().getCategories().get(i));
+            i++;
+         ),
+         result(count)
+        )
+    then
+        $p.setSimilarity($p.getSimilarity() + 1 - $difference/(16*16));
+        System.out.println("USAO U 6: similarity: "+ $p.getSimilarity()+ " difference: "+ $difference+ " korigovano: "+ $difference/(16*16));
+
+end
+
+rule "boost top categories similarity"
+    agenda-group "profilesOfInterest"
+    salience 60
+    when
+        $fc : FinalCategorization() and
+        $focus: ProfileInFocus($main:profile) and
+        $p:ProfileOfInterest(
+                 $profile:profile,
+                 $profile.id != $main.id,
+                 ofInterest==false) and
+        $top: TopCategories($topC:topCategories, $noc:numOfCats) and
+        $difference: Double() from accumulate(
+         Integer($i:this) from $topC,
+         init(Integer count = 0;),
+         action(
+            count += Math.abs($fc.getCategorization().get($i)-$p.getProfile().getFollowCategorization().getCategories().get($i));
+         ),
+         result(count)
+        )
+    then
+        $p.setSimilarity($p.getSimilarity() + 1 - $difference/($noc*16));
+            System.out.println("USAO U 7: similarity: "+ $p.getSimilarity()+ " difference: "+$difference+ " korigovano: "+ $difference/($noc*16));
+
+end;
+
+rule "filter ofInterest"
+    agenda-group "profilesOfInterest"
+    salience 50
+    when
+        $p:ProfileOfInterest(ofInterest==false, getSimilarity() < 1.45)
+    then
+        $p.setOfInterest(true);
+        System.out.println("USAO U 8");
+
+end;
+
+

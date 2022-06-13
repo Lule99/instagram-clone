@@ -8,6 +8,8 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Set;
 
 @Repository
@@ -21,4 +23,11 @@ public interface PostRepository extends JpaRepository<Post, Long> {
     @Query(value = "select count(p.reactions) from Post p where p.id = ?1")
     int countReactionsByPost(long postId);
 
+    List<Post> getTop100ByPublisherInAndTimeCreatedAfter(List<Profile> publishers, LocalDateTime createdAfter);
+
+    List<Post> getAllByTimeCreatedAfter(LocalDateTime after);
+
+    List<Post> getAllByViralAndTimeCreatedBefore(boolean viral, LocalDateTime after);
+
+    List<Post> getTop50ByPublisherInAndTimeCreatedAfterOrderByTimeCreatedDesc(List<Profile> publishers, LocalDateTime createdAfter);
 }

@@ -1,0 +1,79 @@
+package rules;
+dialect  "mvel"
+
+import com.instaclone.instaclone.model.facts.PostFact
+import com.instaclone.instaclone.model.facts.ProfileFact
+import com.instaclone.instaclone.model.Location
+import java.util.List
+import java.util.Set
+import java.time.LocalDateTime
+import java.lang.Double
+import  java.lang.String
+
+
+global Set<String> locationPairs
+
+
+query lastNDaysMoreThanKReactions(LocalDateTime thresholdTime,
+                                  Integer thresholdShares,
+                                  Integer thresholdReactions)
+    $res: List() from collect(
+        PostFact(timeCreated.isAfter(thresholdTime),
+         numOfShares > thresholdShares
+          || reactionsIds.size() > thresholdReactions)
+    )
+end;
+
+
+query viralByAvgFollowInteractionsRelation(LocalDateTime thresholdTime, Double avgFollowers)
+    $res: List() from collect(
+        PostFact($viral:this,
+         timeCreated>thresholdTime,
+          numOfShares > 5 * avgFollowers ||
+          reactionsIds.size() > 10 * avgFollowers)
+    )
+end;
+
+query viralByFollowNumOfInteractionsRelation(LocalDateTime thresholdTime)
+    $res: List() from collect(
+        PostFact($viral:this,
+         timeCreated>thresholdTime,
+          numOfShares > 1.5 * publisher.followingIds.size() ||
+          reactionsIds.size() > 3 * publisher.followingIds.size())
+    )
+end;
+
+query getAverageFollowers()
+
+    $avg: Number() from accumulate(
+        PostFact($folls:publisher.followersIds),
+        init(int i = 1; int count = 0;),
+        action(
+            count += $folls.size();
+            i++;
+        ),
+        result(count/i)
+    )
+
+end;
+
+query backward( String sublocation, String parentLocation )
+  Location( sublocation, parentLocation; )
+  or
+  ( Location( z, parentLocation; ) and backward( sublocation, z; ) )
+end
+
+
+rule "runCrossCheck"
+    agenda-group "backward"
+when
+    String( this == "runCrossCheck" )
+    backward(child, parent; )
+then
+    locationPairs.add(child + "|"+ parent);
+end
+
+
+
+
+

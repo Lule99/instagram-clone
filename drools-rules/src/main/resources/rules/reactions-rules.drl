@@ -1,0 +1,141 @@
+package rules;
+
+import com.instaclone.instaclone.model.Reaction;
+import com.instaclone.instaclone.model.Profile;
+import com.instaclone.instaclone.model.Categorization;
+import com.instaclone.instaclone.model.enums.ReactionType;
+import com.instaclone.instaclone.model.enums.Category;
+import com.instaclone.instaclone.model.Post;
+import java.util.*;
+import java.lang.Double
+import java.time.LocalDateTime;
+
+rule "Add LIKE reaction"
+    agenda-group "add-reactions"
+    no-loop
+    when
+        $reaction: Reaction(reactionType == ReactionType.LIKE)
+        $post: Post(id == $reaction.post.id, $categories: categories)
+        $profile: Profile($categorization: followCategorization)
+        $newCategorization: List() from accumulate (
+            Category($cat: this) from $categories,
+            init(List<Double> res = $categorization.getCategories(); ),
+            action(
+                res.set($cat.ordinal(), res.get($cat.ordinal()) + 1);
+
+                for(int j = 0; j < $profile.getFollowCategorization().getCategories().size(); j++) {
+                                    res.set(j, res.get(j) * 16/17);
+
+                                 }
+
+            ),
+            result(res)
+        )
+    then
+        $profile.getFollowCategorization().setCategories($newCategorization);
+        $profile.getFollowCategorization().setLastUpdate(LocalDateTime.now());
+    end
+
+rule "Add DISLIKE reaction"
+    agenda-group "add-reactions"
+    no-loop
+    when
+        $reaction: Reaction(reactionType == ReactionType.DISLIKE)
+        $post: Post(id == $reaction.post.id, $categories: categories)
+        $profile: Profile($categorization: followCategorization)
+        $newCategorization: List() from accumulate (
+            Category($cat: this) from $categories,
+                        init(List<Double> res = $categorization.getCategories(); ),
+                        action(
+                            res.set($cat.ordinal(), res.get($cat.ordinal()) - 1);
+
+                            for(int j = 0; j < $profile.getFollowCategorization().getCategories().size(); j++) {
+                                                res.set(j, (1 + res.get(j)) * 16/31);
+
+                                             }
+
+                        ),
+                        result(res)
+        )
+    then
+        $profile.getFollowCategorization().setCategories($newCategorization);
+        $profile.getFollowCategorization().setLastUpdate(LocalDateTime.now());
+    end
+
+rule "Add ANGRY reaction"
+    agenda-group "add-reactions"
+    no-loop
+    when
+        $reaction: Reaction(reactionType == ReactionType.ANGRY)
+        $post: Post(id == $reaction.post.id, $categories: categories)
+        $profile: Profile($categorization: followCategorization)
+        $newCategorization: List() from accumulate (
+            Category($cat: this) from $categories,
+                        init(List<Double> res = $categorization.getCategories(); ),
+                        action(
+                            res.set($cat.ordinal(), res.get($cat.ordinal()) - 2);
+
+                            for(int j = 0; j < $profile.getFollowCategorization().getCategories().size(); j++) {
+                                                res.set(j, (2 + res.get(j)) * 16/46);
+
+                                             }
+
+                        ),
+                        result(res)
+        )
+    then
+        $profile.getFollowCategorization().setCategories($newCategorization);
+        $profile.getFollowCategorization().setLastUpdate(LocalDateTime.now());
+    end
+
+rule "Add LAUGH reaction"
+    agenda-group "add-reactions"
+    no-loop
+    when
+        $reaction: Reaction(reactionType == ReactionType.LAUGH)
+        $post: Post(id == $reaction.post.id, $categories: categories)
+        $profile: Profile($categorization: followCategorization)
+        $newCategorization: List() from accumulate (
+            Category($cat: this) from $categories,
+                        init(List<Double> res = $categorization.getCategories(); ),
+                        action(
+                            res.set($cat.ordinal(), res.get($cat.ordinal()) + 2);
+
+                            for(int j = 0; j < $profile.getFollowCategorization().getCategories().size(); j++) {
+                                                res.set(j, res.get(j) * 16/18);
+
+                                             }
+
+                        ),
+                        result(res)
+        )
+    then
+        $profile.getFollowCategorization().setCategories($newCategorization);
+        $profile.getFollowCategorization().setLastUpdate(LocalDateTime.now());
+    end
+
+rule "Add SAD reaction"
+    agenda-group "add-reactions"
+    no-loop
+    when
+        $reaction: Reaction(reactionType == ReactionType.SAD)
+        $post: Post(id == $reaction.post.id, $categories: categories)
+        $profile: Profile($categorization: followCategorization)
+        $newCategorization: List() from accumulate (
+            Category($cat: this) from $categories,
+                        init(List<Double> res = $categorization.getCategories(); ),
+                        action(
+                            res.set($cat.ordinal(), res.get($cat.ordinal()) - 0.5);
+
+                            for(int j = 0; j < $profile.getFollowCategorization().getCategories().size(); j++) {
+                                                res.set(j, (0.5 + res.get(j)) * 16/23.5);
+
+                                             }
+
+                        ),
+                        result(res)
+        )
+    then
+        $profile.getFollowCategorization().setCategories($newCategorization);
+        $profile.getFollowCategorization().setLastUpdate(LocalDateTime.now());
+    end

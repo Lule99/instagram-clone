@@ -1,22 +1,25 @@
 package com.instaclone.instaclone.service.impl;
 
-import com.instaclone.instaclone.dto.reaction.*;
-import com.instaclone.instaclone.exception.OperationNotAllowedException;
-import com.instaclone.instaclone.model.Comment;
+import com.instaclone.instaclone.dto.reaction.ToggleReactionDto;
+import com.instaclone.instaclone.dto.reaction.ToggleReactionResponseDto;
+import com.instaclone.instaclone.events.ReactionEvent;
 import com.instaclone.instaclone.model.Post;
 import com.instaclone.instaclone.model.Reaction;
 import com.instaclone.instaclone.model.User;
 import com.instaclone.instaclone.model.enums.ReactionKind;
+import com.instaclone.instaclone.repository.CategorizationRepository;
 import com.instaclone.instaclone.repository.ReactionRepository;
-import com.instaclone.instaclone.service.CommentService;
 import com.instaclone.instaclone.service.PostService;
 import com.instaclone.instaclone.service.ReactionService;
 import com.instaclone.instaclone.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.kie.api.runtime.KieContainer;
+import org.kie.api.runtime.KieSession;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
 import javax.transaction.Transactional;
 import java.time.LocalDateTime;
 
@@ -25,65 +28,18 @@ import java.time.LocalDateTime;
 public class ReactionServiceImpl extends JPAServiceImpl<Reaction> implements ReactionService {
 
     private final ReactionRepository reactionRepository;
-    private final CommentService commentService;
     private final PostService postService;
     private final UserService userService;
+    private final KieContainer kieContainer;
+    private final CategorizationRepository categorizationRepository;
 
-    @PostConstruct
-    public void init()
-    {
-        postService.setReactionService(this);
-    }
+    @Autowired
+    @Qualifier(value = "cepSession")
+    private KieSession cepKieSession;
 
     @Override
     protected JpaRepository<Reaction, Long> getEntityRepository() {
         return reactionRepository;
-    }
-
-    @Transactional
-    @Override
-    public ReactionDto addCommentReaction(AddReactionDto dto, String username) {
-        User user = userService.findByUsername(username);
-        Comment comment = commentService.findOne(dto.getEntityId());
-        Reaction reaction = reactionRepository.reactionForComment(ReactionKind.COMMENT_REACTION, user.getProfile(), comment, true);
-
-        if (reaction == null) {
-            return addCommentReaction(dto, user, comment);
-        } else {
-            return updateCommentReaction(reaction, dto, user);
-        }
-    }
-
-    private ReactionDto addCommentReaction(AddReactionDto dto, User user, Comment comment) {
-        Reaction newReaction = new Reaction(dto.getReactionType(), user.getProfile(), ReactionKind.COMMENT_REACTION, comment, null);
-        newReaction.setTimeCreated(LocalDateTime.now());
-        save(newReaction);
-        comment.getReactions().add(newReaction);
-        commentService.save(comment);
-
-        return new ReactionDto(newReaction.getId(), dto.getReactionType(), user.getProfile().getProfilePicture(), user.getUsername());
-    }
-
-    private ReactionDto updateCommentReaction(Reaction reaction, AddReactionDto dto, User user) {
-        reaction.setReactionType(dto.getReactionType());
-        reaction.setTimeCreated(LocalDateTime.now());
-        save(reaction);
-        return new ReactionDto(reaction.getId(), dto.getReactionType(), user.getProfile().getProfilePicture(), user.getUsername());
-    }
-
-    @Transactional
-    @Override
-    public void removeCommentReaction(RemoveReactionDto dto, String username) {
-        User user = userService.findByUsername(username);
-        Comment comment = commentService.findOne(dto.getEntityId());
-        Reaction reaction = findOne(dto.getId());
-
-        if (reaction.getProfile() != user.getProfile())
-            throw new OperationNotAllowedException("Zabranjeno brisanje tudje reakcije!");
-
-        comment.getReactions().remove(reaction);
-        commentService.save(comment);
-        delete(dto.getId());
     }
 
     @Transactional
@@ -113,17 +69,28 @@ public class ReactionServiceImpl extends JPAServiceImpl<Reaction> implements Rea
         return reaction.getReactionType().toString();
     }
 
-    @Override
     public int countReactionsByPost(Post post) {
         return reactionRepository.countReactionByPostId(post.getId());
     }
 
     private ToggleReactionResponseDto addReactionPost(Post post, ToggleReactionDto dto, User user) {
-        Reaction newReaction = new Reaction(dto.getReactionType(), user.getProfile(), ReactionKind.POST_REACTION, null, post);
+        Reaction newReaction = new Reaction(dto.getReactionType(), user.getProfile(), ReactionKind.POST_REACTION, post);
         newReaction.setTimeCreated(LocalDateTime.now());
         save(newReaction);
         post.getReactions().add(newReaction);
+
+        KieSession kieSession = kieContainer.newKieSession("testSession");
+        kieSession.getAgenda().getAgendaGroup( "add-reactions" ).setFocus();
+        kieSession.insert(newReaction);
+        kieSession.insert(user.getProfile());
+        kieSession.insert(post);
+        kieSession.fireAllRules();
+        kieSession.dispose();
+
+        categorizationRepository.save(user.getProfile().getFollowCategorization());
         postService.save(post);
+
+        cepKieSession.insert(new ReactionEvent(user.getProfile(), post.getPublisher()));
         return new ToggleReactionResponseDto(dto.getReactionType().toString(), false);
     }
 

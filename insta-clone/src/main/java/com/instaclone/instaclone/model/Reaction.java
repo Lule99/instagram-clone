@@ -22,10 +22,7 @@ public class Reaction extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private ReactionKind reactionKind;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    private Comment comment;
-
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     private Post post;
 
 }

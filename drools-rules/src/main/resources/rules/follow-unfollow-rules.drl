@@ -1,0 +1,84 @@
+package rules;
+dialect "mvel"
+
+import com.instaclone.instaclone.model.facts.FollowUnfollow;
+import com.instaclone.instaclone.model.facts.enums.ToggleFollowType;
+import java.util.List
+import java.time.LocalDateTime;
+
+
+rule "Set toggle type UNFOLLOW - level 0"
+    agenda-group "follow-unfollow"
+    salience 100
+    when
+        $followUnfollow: FollowUnfollow(myProfile.getFollowing() contains otherProfile)
+    then
+        System.out.println("Postavljam type na UNFOLLOW");
+        modify($followUnfollow){setType(ToggleFollowType.UNFOLLOW)}
+    end
+
+rule "Set toggle type FOLLOW - level 0"
+    agenda-group "follow-unfollow"
+    salience 100
+    when
+        $followUnfollow: FollowUnfollow((myProfile.getFollowing() not contains otherProfile))
+    then
+        System.out.println("Postavljam type na FOLLOW");
+        modify($followUnfollow){setType(ToggleFollowType.FOLLOW)}
+    end
+
+rule "Follow rule - level 1"
+    agenda-group "follow-unfollow"
+    salience 10
+    when
+        $followUnfollow: FollowUnfollow(type == ToggleFollowType.FOLLOW,
+                                        $myProfile: myProfile,
+                                        $otherProfile: otherProfile)
+        $newCategorization: List() from accumulate (
+                    Double($cat: this) from $otherProfile.getPostCategorization().getCategories(),
+                    init(int i = 0;),
+                    action(
+                        $myProfile.getFollowCategorization().getCategories()
+                        .set(i, ($myProfile.getFollowCategorization()
+                        .getCategories().get(i) + $otherProfile.getPostCategorization()
+                        .getCategories().get(i)) / 2);
+
+                        i++;
+                    ),
+                    result($myProfile.getFollowCategorization().getCategories())
+                )
+    then
+        System.out.println("Ja: " + $myProfile.getName() + " sam zapration: " + $otherProfile.getName());
+        $myProfile.getFollowCategorization().setCategories($newCategorization);
+        $myProfile.getFollowCategorization().setLastUpdate(LocalDateTime.now());
+        $myProfile.getFollowing().add($otherProfile);
+        $otherProfile.getFollowers().add($myProfile);
+    end
+
+rule "Unfollow rule - level 1"
+    agenda-group "follow-unfollow"
+    salience 10
+    when
+        $followUnfollow: FollowUnfollow(type == ToggleFollowType.UNFOLLOW,
+                                        $myProfile: myProfile,
+                                        $otherProfile: otherProfile)
+        $newCategorization: List() from accumulate (
+                            Double($cat: this) from $otherProfile.getPostCategorization().getCategories(),
+                            init(int i = 0;),
+                            action(
+                                $myProfile.getFollowCategorization().getCategories()
+                                .set(i, ($myProfile.getFollowCategorization()
+                                .getCategories().get(i) + $otherProfile.getPostCategorization()
+                                .getCategories().get(i)) / 2);
+
+                                i++;
+                            ),
+                            result($myProfile.getFollowCategorization().getCategories())
+                        )
+    then
+        System.out.println("Ja: " + $myProfile.getName() + " sam otpratio: " + $otherProfile.getName());
+        $myProfile.getFollowCategorization().setCategories($newCategorization);
+        $myProfile.getFollowCategorization().setLastUpdate(LocalDateTime.now());
+        $myProfile.getFollowing().remove($otherProfile);
+        $otherProfile.getFollowers().remove($myProfile);
+    end

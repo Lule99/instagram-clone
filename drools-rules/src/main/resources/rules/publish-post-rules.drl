@@ -1,0 +1,29 @@
+package rules;
+dialect "mvel"
+
+import com.instaclone.instaclone.model.facts.PostPublished;
+import com.instaclone.instaclone.model.enums.Category;
+import java.util.List;
+import java.time.LocalDateTime;
+
+rule "Post published"
+    agenda-group "post-published"
+    lock-on-active
+    when
+        $postPublished: PostPublished($myProfile: myProfile, $categories: categories)
+        $newCategorization: List() from accumulate (
+            Category($cat: this) from $categories,
+            init(List<Double> res = $myProfile.getPostCategorization().getCategories(); ),
+            action(
+                 res.set($cat.ordinal(), res.get($cat.ordinal()) + 1);
+                 for(int j = 0; j < $myProfile.getPostCategorization().getCategories().size(); j++) {
+                    res.set(j, res.get(j) * 16/17);
+
+                 }
+            ),
+            result(res)
+        )
+    then
+        $myProfile.getPostCategorization().setCategories($newCategorization);
+        $myProfile.getPostCategorization().setLastUpdate(LocalDateTime.now());
+    end

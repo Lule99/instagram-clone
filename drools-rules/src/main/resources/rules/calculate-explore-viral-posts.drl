@@ -1,0 +1,120 @@
+package rules;
+dialect  "mvel"
+import com.instaclone.instaclone.model.facts.ViralPost
+import com.instaclone.instaclone.model.facts.TopCategories
+import com.instaclone.instaclone.model.facts.ReduceOldVirals
+import java.util.List
+import static java.lang.Math.abs;
+
+global ReduceOldVirals reduceOldVirals
+
+
+rule "high sentiment"
+    agenda-group "viral-posts"
+    no-loop
+    when                                // snaznoi zrazen poz/ neg sentiment
+    $post: ViralPost($interactions:numOfInteractions,
+    Math.abs(reactionsByType.get(0)-reactionsByType.get(1)+reactionsByType.get(2)-reactionsByType.get(3)-reactionsByType.get(4))/numOfInteractions > 0.5)
+    then
+    modify($post){setHighSentiment(true)}
+end
+
+
+rule "high positive sentiment "
+    agenda-group "viral-posts"
+    no-loop
+    when
+    $post: ViralPost($interactions:numOfInteractions,
+    positivityCoef> 0.85)
+    then
+    modify($post){setHighSentiment(true)}
+end
+
+
+rule "high negative sentiment "
+    agenda-group "viral-posts"
+    no-loop
+    when
+    $post: ViralPost($interactions:numOfInteractions,
+    negativityCoef> 0.85)
+    then
+    modify($post){setHighSentiment(true)}
+end
+
+
+rule "high sentiment and not new"
+    agenda-group "viral-posts"
+    no-loop
+    when                                // snaznoizrazen poz/ neg sentiment a to ne proizilazi zato sto je nov post => prolazi
+    $post: ViralPost(highSentiment, daysFromPublishing > 1)
+    then
+    modify($post){setTheChosenOne(true)}
+end
+
+
+rule "high num of likes 1"
+    agenda-group "viral-posts"
+    no-loop
+    when        //prosecno dnavno lajkuje 50% od broja followera
+    $post: ViralPost(numOfReactions/daysFromPublishing > 0.5 * numOfFollowers, daysFromPublishing > 3.0)
+
+    then
+    modify($post){setTheChosenOne(true)}
+end
+
+
+rule "high num of likes 2"
+    agenda-group "viral-posts"
+    no-loop
+    when        //prosecno dnevno lajkuje 150% od broja followera
+    $post: ViralPost(numOfReactions/daysFromPublishing > 1.5 * numOfFollowers, daysFromPublishing < 3.0)
+
+    then
+    modify($post){setTheChosenOne(true)}
+end
+
+
+rule "high num of shares"
+    agenda-group "viral-posts"
+    no-loop
+    when        //prosecno dnavno share trecina od broja followera
+    $post: ViralPost(numOfShares/daysFromPublishing > 0.33 * numOfFollowers)
+
+    then
+    modify($post){setTheChosenOne(true)}
+end
+
+
+rule "reactions to followers ratio"
+    agenda-group "viral-posts"
+    no-loop
+    when
+    $post: ViralPost(numReactionsNumFollowersRatio > 3.0)
+
+    then
+    modify($post){setHighSentiment(true)}
+end
+
+
+rule "ReduceOldViralPosts"
+    agenda-group "viral-posts"
+    when
+        accumulate($fS: ViralPost(
+                                    $numOfReactions : numOfReactions,
+                                    $numOfShares : numOfShares,
+                                    highSentiment == true,
+                                    daysFromPublishing > 5,
+                                    theChosenOne == true),
+            $averageReactions: average($numOfReactions),
+            $averageShares: average($numOfShares),
+            $maxReactions: max($numOfReactions),
+            $ViralsList: collectList($fS)
+        )
+    then
+        reduceOldVirals.setViralPosts($ViralsList);
+        reduceOldVirals.setAvgShares($averageShares);
+        reduceOldVirals.setAvgReactions($averageReactions);
+        reduceOldVirals.setMaxReactions($maxReactions);
+end
+
+

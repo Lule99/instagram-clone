@@ -19,9 +19,13 @@ import com.instaclone.instaclone.model.User;
 import com.instaclone.instaclone.repository.PasswordTokenRepository;
 import com.instaclone.instaclone.repository.ProfileRepository;
 import com.instaclone.instaclone.repository.UserRepository;
+import com.instaclone.instaclone.service.CategorizationService;
 import com.instaclone.instaclone.service.ImageService;
+import com.instaclone.instaclone.service.LocationService;
 import com.instaclone.instaclone.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.kie.api.runtime.KieContainer;
+import org.kie.api.runtime.KieSession;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -48,6 +52,9 @@ public class UserServiceImpl extends JPAServiceImpl<User> implements UserService
     private final UserToUserSearchResultDto userToUserSearchResultDto;
     private final UserToProfileInfoDtoConverter userToProfileInfoDtoConverter
             = new UserToProfileInfoDtoConverter();
+    private final LocationService locationService;
+    private final CategorizationService categorizationService;
+    private final KieContainer kieContainer;
 
     private static final String FRONT_APP_URL = "http://localhost:3000";
 
@@ -76,11 +83,20 @@ public class UserServiceImpl extends JPAServiceImpl<User> implements UserService
 
         User user = registrationDtoToUser.convert(registrationDto);
         Profile profile = registrationDtoToProfile.convert(registrationDto);
+        locationService.save(profile.getLocation());
+        categorizationService.save(profile.getPostCategorization());
+        categorizationService.save(profile.getFollowCategorization());
 
         if (userRepository.findByUsername(registrationDto.getUsername()) != null)
             throw new BadCredentialsException("Username vec postoji!");
         if (!registrationDto.getPassword().equals(registrationDto.getRepeatedPassword()))
             throw new BadCredentialsException("Sifre se ne poklapaju!");
+
+        KieSession kieSession = kieContainer.newKieSession("testSession");
+        kieSession.getAgenda().getAgendaGroup( "age-categories" ).setFocus();
+        kieSession.insert(profile);
+        kieSession.fireAllRules();
+        kieSession.dispose();
 
         profileRepository.save(profile);
         user.setProfile(profile);
@@ -189,7 +205,13 @@ public class UserServiceImpl extends JPAServiceImpl<User> implements UserService
     }
 
     @Override
+    public List<Profile> getProfilesByViral(Boolean viral) {
+        return profileRepository.findAllByViral(viral);
+    }
+
+    @Override
     protected JpaRepository<User, Long> getEntityRepository() {
         return this.userRepository;
     }
+
 }
