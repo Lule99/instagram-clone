@@ -68,7 +68,7 @@ rule "Calculate distance - rule"
     no-loop
     lock-on-active
     when
-        $location: Location(id != myLocation.id)
+        $location: Location(myLocation != null, id != myLocation.id)
     then
         System.out.println("Usao u Calculate distance - rule!");
         insert(new DistanceCalculated($location, locationService.calculateDistance(myLocation, $location)))

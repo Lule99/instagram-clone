@@ -432,7 +432,7 @@ public class PostServiceImpl extends JPAServiceImpl<Post> implements PostService
 
         List<Location> locations = locationService.findAll();
         KieSession kieSession = kieContainer.newKieSession("testSession");
-
+        kieSession.getAgenda().getAgendaGroup("backward").setFocus();
         locations.forEach(kieSession::insert);
         kieSession.insert("go1");
         kieSession.fireAllRules();

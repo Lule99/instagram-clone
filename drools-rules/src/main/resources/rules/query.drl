@@ -68,6 +68,7 @@ query backward( String x, String y )
 end
 
 rule "go1"
+    agenda-group "backward"
 when
     String( this == "go1" )
     backward("subotica", "srbija"; )
