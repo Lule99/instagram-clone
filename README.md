@@ -20,6 +20,9 @@ Klijentski deo aplikacije je rađen uz pomoć React-a a sam repozitorijum se nal
 Najpre je potrebno klonirati repozitorijum komandom ```git clone https://github.com/Lule99/instagram-clone ```.
 Zatim je potrebno prvo nad drools-rules projektom izvršiti ```maven clean install```.
 Drugi korak jeste izvršavanje ```maven clean package``` nad projektom insta-clone.
+
+Potrebno je imati instaliranu i pokrenutu postgres bazu i u njoj kreirati bazu insta-clone. Specifikaciju db_user + password kao i port baze potrebno je uneti u application.properties linije 3-6.
+
 Na kraju je potrebno i run-ovati aplikaciju.
 
 ## Kredencijali (za testiranje)
