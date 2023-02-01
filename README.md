@@ -29,3 +29,18 @@ Na kraju je potrebno i run-ovati aplikaciju.
  * username: regularUsername1; lozinka: 123
  * username: regularUsername2; lozinka: 123
  * username: regularUsername3; lozinka: 123
+ 
+## Dodatna uputstva za panonit testere:
+Za najlakse konfigurisanje baze predlazem upotrebu dockera ali kroz gui varijantu (radi lakseg rada) - docker desktop.
+
+### Koraci:
+ * Preuzimanje i instalacija docker desktop
+ * Instalirani docker desktop > Containers tab > kliknuti get postgres (ili nesto slicno ali bice ponudjeno dugme)
+ * Extensions tab > AddExtension > Databases > Open Source management tool for PostgreSQL (inbuilt gui za laksi pregled baze)
+ * Baza ce vrv trcati na portu 55000 sa kredencijalima usr/pwd : postgres/postgrespw
+ * Prethodno se moze proveriti u Containers > Actions > Open In Terminal > View and edit data using pgAdmin
+ * BTW na tom tabu se postaraj da je container running (play dugme)
+ * U pg adminu (ona extenzija od malopre) staviti neki random master password > desni klik na server > Register > Server > Name stavi sta god > ConnectionTab > unati parametre sa prethodnog terminala (Host, port, username password)
+ * Kreirati bazu insta-clone
+ *U aplikaciji u resources insta-clone aplikacije u application.properties fajl uneti odgovarajuce username+password i port
+ 
