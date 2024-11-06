@@ -4,7 +4,7 @@ Predmetni projekat u okviru kursa Sistemi bazirani na znanju - SBNZ SIIT FTN
 
 ## Opis projekta
 
-Projekat predstavlja kombinaciju društvene mreže i sistema baziranih na znanju. Sistem omogućava klasične funkcionalnosti kao i svaka društvena mreža ali je deo vezan za preporuke prijatelja i preporuke objava koje bi nam se mogle svideti implementiran preko skupa pravila.
+Projekat predstavlja kombinaciju društvene mreže i sistema baziranih na znanju. Sistem omogućava klasične funkcionalnosti kao i svaka društvena mreža ali je deo vezan za preporuke prijatelja i preporuke objava koje bi nam se mogle svideti implementiran preko skupa pravila. Dokumentacija kao i predlog projekta mogu se naci u folderu docs ili [ovde](https://github.com/Lule99/instagram-clone-knowledge-based-systems/blob/master/docs/InstaCloneProposal.pdf).
 
 ## Tehnologije
 
