@@ -1,5 +1,7 @@
 # Sistemi bazirani na znanju 2021/2022
 
+Predmetni projekat u okviru kursa Sistemi bazirani na znanju - SBNZ SIIT FTN
+
 ## Opis projekta
 
 Projekat predstavlja kombinaciju društvene mreže i sistema baziranih na znanju. Sistem omogućava klasične funkcionalnosti kao i svaka društvena mreža ali je deo vezan za preporuke prijatelja i preporuke objava koje bi nam se mogle svideti implementiran preko skupa pravila.
